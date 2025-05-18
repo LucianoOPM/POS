@@ -29,6 +29,7 @@ pub async fn run() {
 
     Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_opener::Builder::default().build())
         .setup(|app| {
             app.manage(AppState {
                 database: db_connection,

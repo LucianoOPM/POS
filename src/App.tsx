@@ -1,7 +1,8 @@
 import { useState } from "preact/hooks";
-import preactLogo from "./assets/preact.svg";
+import preactLogo from "@/assets/preact.svg";
 import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
+import "@/App.css";
+import { AuthView } from "@auth/View";
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
@@ -28,7 +29,7 @@ function App() {
         </a>
       </div>
       <p>Click on the Tauri, Vite, and Preact logos to learn more.</p>
-
+      <AuthView />
       <form
         class="row"
         onSubmit={(e) => {

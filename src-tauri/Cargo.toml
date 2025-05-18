@@ -32,3 +32,4 @@ sea-orm = { version = "1.1.11", features = [
 ] }
 dotenvy = "0.15.7"
 bcrypt = "0.17.0"
+tauri-plugin-store = "2"
