@@ -28,8 +28,7 @@ pub async fn run() {
         .expect("Error on db connection");
 
     Builder::default()
-        .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_opener::Builder::default().build())
+        .plugin(tauri_plugin_store::Builder::default().build())
         .setup(|app| {
             app.manage(AppState {
                 database: db_connection,
