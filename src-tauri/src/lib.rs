@@ -1,21 +1,21 @@
 use dotenvy::dotenv;
 use sea_orm::DatabaseConnection;
-use std::env;
+use std::{env, sync::Mutex};
 use tauri::{Builder, Manager};
 mod db;
 mod entities;
+mod sessions;
 mod users;
 
+use sessions::SessionModels::Session;
+
+use sessions::SessionControllers::{login, logout};
 use users::UserControllers::{create_user, get_users};
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
+#[derive(Debug)]
 struct AppState {
     database: DatabaseConnection,
+    session: Mutex<Option<Session>>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -28,14 +28,19 @@ pub async fn run() {
         .expect("Error on db connection");
 
     Builder::default()
-        .plugin(tauri_plugin_store::Builder::default().build())
         .setup(|app| {
             app.manage(AppState {
                 database: db_connection,
+                session: Mutex::new(None),
             });
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet, get_users, create_user])
+        .invoke_handler(tauri::generate_handler![
+            get_users,
+            create_user,
+            login,
+            logout
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
