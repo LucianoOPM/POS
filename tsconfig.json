@@ -29,6 +29,9 @@
       ],
       "@auth/*": [
         "./src/auth/*"
+      ],
+      "@dashboard/*": [
+        "./src/dashboard/*"
       ]
     }
   },
