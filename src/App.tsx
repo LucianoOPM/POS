@@ -1,51 +1,50 @@
-import { useState } from "preact/hooks";
-import preactLogo from "@/assets/preact.svg";
-import { invoke } from "@tauri-apps/api/core";
 import "@/App.css";
-import { AuthView } from "@auth/View";
+import { Switch, Route, Router } from "wouter-preact";
+import { useHashLocation } from "wouter-preact/use-hash-location";
+import { AuthView } from "@/auth/View";
+import { DashboardView } from "@dashboard/View";
+import { AppLayout } from "@/Layouts/AppLayout";
+import { ProtectedRoute } from "@/routes/ProtectedRoute";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { useEffect, useState } from "preact/hooks";
+import { getSession } from "@/auth/hooks/useAuth";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const auth = useAuthStore((state) => state);
+  const [, setLocation] = useHashLocation();
+  const [loading, setLoading] = useState(true); // <-- Nuevo estado
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+  useEffect(() => {
+    (async () => {
+      try {
+        const session = await getSession();
+        if (session) {
+          await auth.login(session);
+          setLocation("/dashboard");
+        } else {
+          setLocation("/auth");
+        }
+      } catch (e) {
+        setLocation("/auth");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  if (loading) return <div>Cargando...</div>; // <-- No renderiza rutas hasta saber
 
   return (
-    <main class="container">
-      <h1>Welcome to Tauri + Preact</h1>
-
-      <div class="row">
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" class="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" class="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://preactjs.com" target="_blank">
-          <img src={preactLogo} class="logo preact" alt="Preact logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and Preact logos to learn more.</p>
-      <AuthView />
-      <form
-        class="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onInput={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
+    <Router hook={useHashLocation}>
+      <AppLayout>
+        <Switch>
+          <Route path={"/auth"} component={AuthView} />
+          <ProtectedRoute>
+            <Route path={"/dashboard"} component={DashboardView} />
+          </ProtectedRoute>
+        </Switch>
+      </AppLayout>
+    </Router>
   );
 }
 

@@ -24,7 +24,7 @@ fn is_session_active(state: &tauri::State<'_, AppState>) -> Result<bool, &'stati
 pub async fn login(
     state: tauri::State<'_, AppState>,
     user_data: LoginData,
-) -> Result<(), &'static str> {
+) -> Result<Session, &'static str> {
     if is_session_active(&state)? {
         return Err(ALREADY_LOGGED);
     }
@@ -62,10 +62,10 @@ pub async fn login(
         role: profile.name,
         email: user.email,
     };
-
+    let session_clone = session.clone();
     *state.session.lock().map_err(|_| "Session lock poisoned")? = Some(session);
 
-    Ok(())
+    Ok(session_clone)
 }
 
 #[tauri::command]
@@ -75,4 +75,13 @@ pub async fn logout(state: tauri::State<'_, AppState>) -> Result<(), &'static st
     }
     *state.session.lock().map_err(|_| "Session lock poisoned")? = None;
     Ok(())
+}
+
+#[tauri::command]
+pub async fn get_session(state: tauri::State<'_, AppState>) -> Result<Session, &'static str> {
+    if !is_session_active(&state)? {
+        return Err(NOT_LOGGED);
+    }
+    let session = state.session.lock().map_err(|_| "Session lock poisoned")?;
+    Ok(session.clone().unwrap())
 }

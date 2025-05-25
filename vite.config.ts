@@ -12,6 +12,7 @@ export default defineConfig(async () => ({
     alias: {
       "@": resolve(__dirname, "src"),
       "@auth": resolve(__dirname, "src/auth"),
+      "@dashboard": resolve(__dirname, "src/dashboard"),
     },
   },
 

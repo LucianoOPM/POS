@@ -10,11 +10,16 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.0.1",
     "@tailwindcss/vite": "^4.1.7",
     "@tauri-apps/api": "^2",
+    "lucide-preact": "^0.511.0",
     "preact": "^10.25.1",
+    "react-hook-form": "^7.56.4",
     "tailwindcss": "^4.1.7",
-    "wouter-preact": "^3.7.0"
+    "wouter-preact": "^3.7.0",
+    "zod": "^3.25.13",
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.9.3",

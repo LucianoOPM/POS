@@ -9,7 +9,7 @@ mod users;
 
 use sessions::SessionModels::Session;
 
-use sessions::SessionControllers::{login, logout};
+use sessions::SessionControllers::{get_session, login, logout};
 use users::UserControllers::{create_user, get_users};
 
 #[derive(Debug)]
@@ -39,7 +39,8 @@ pub async fn run() {
             get_users,
             create_user,
             login,
-            logout
+            logout,
+            get_session
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
