@@ -7,23 +7,17 @@ import { AppLayout } from "@/Layouts/AppLayout";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useEffect, useState } from "preact/hooks";
-import { getSession } from "@/auth/hooks/useAuth";
 
 function App() {
-  const auth = useAuthStore((state) => state);
+  const setSession = useAuthStore((state) => state.setSession);
   const [, setLocation] = useHashLocation();
   const [loading, setLoading] = useState(true); // <-- Nuevo estado
 
   useEffect(() => {
     (async () => {
       try {
-        const session = await getSession();
-        if (session) {
-          await auth.login(session);
-          setLocation("/dashboard");
-        } else {
-          setLocation("/auth");
-        }
+        await setSession();
+        setLocation("/dashboard");
       } catch (e) {
         setLocation("/auth");
       } finally {
