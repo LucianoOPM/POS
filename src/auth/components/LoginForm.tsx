@@ -7,7 +7,6 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOffIcon } from "lucide-preact";
 import { useState } from "preact/hooks";
-import { loginFunction } from "@/auth/hooks/useAuth";
 import { navigate } from "wouter-preact/use-hash-location";
 
 export const LoginForm = () => {
@@ -28,10 +27,13 @@ export const LoginForm = () => {
   });
 
   const handleLogin = async (data: LoginFormSchema) => {
-    const { username, password } = data;
-    const sessionData = await loginFunction({ username, password });
-    await login(sessionData);
-    navigate("/dashboard");
+    try {
+      const { username, password } = data;
+      await login({ username, password });
+      navigate("/dashboard");
+    } catch (error) {
+      console.log(error);
+    }
   };
   return (
     <div class="p-6 space-y-4 md:space-y-6 sm:p-8">

@@ -1,14 +1,21 @@
-import { AuthState } from "@/types/auth";
-import { User } from "@/types/user";
+import { getSession, loginFunction } from "@/hooks/session/useSession";
+import { AuthState, LoginData, Session } from "@/types/auth";
+import { invoke } from "@tauri-apps/api/core";
 import { create } from "zustand";
 
 export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
-  user: null,
-  login: async (user: User) => {
-    return set({ isAuthenticated: true, user });
+  session: null,
+  login: async (loginData: LoginData) => {
+    const session = await loginFunction(loginData);
+    set({ isAuthenticated: true, session });
   },
-  logout: () => {
-    set({ isAuthenticated: false, user: null });
+  logout: async () => {
+    await invoke("logout");
+    set({ isAuthenticated: false, session: null });
+  },
+  setSession: async () => {
+    const session = await getSession();
+    set({ isAuthenticated: true, session });
   },
 }));

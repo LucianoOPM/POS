@@ -1,8 +1,18 @@
-import { User } from "./user";
-
 export type AuthState = {
   isAuthenticated: boolean;
-  user: User | null;
-  login: (user: User) => Promise<void>;
-  logout: () => void;
+  session: Session | null;
+  login: (loginData: LoginData) => Promise<void>;
+  logout: () => Promise<void>;
+  setSession: () => Promise<void>;
+};
+
+export type LoginData = {
+  username: string;
+  password: string;
+};
+
+export type Session = {
+  username: string;
+  role: "ADMIN" | "USER";
+  email: string;
 };
