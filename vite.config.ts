@@ -13,6 +13,7 @@ export default defineConfig(async () => ({
       "@": resolve(__dirname, "src"),
       "@auth": resolve(__dirname, "src/auth"),
       "@dashboard": resolve(__dirname, "src/dashboard"),
+      "@products": resolve(__dirname, "src/products"),
     },
   },
 

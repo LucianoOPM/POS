@@ -1,29 +1,27 @@
-import React, { FC } from "preact/compat";
 import { useHashLocation } from "wouter-preact/use-hash-location";
 import { NavBar } from "@/components/NavBar";
+import { ComponentChildren } from "preact";
 
-export interface LayoutProps {
-  children: React.ReactNode;
+interface AppLayoutProps {
+  children: ComponentChildren;
 }
 
-export const AppLayout: FC<LayoutProps> = ({ children }) => {
+export const AppLayout = ({ children }: AppLayoutProps) => {
   const [location] = useHashLocation();
   const isAuthPage = location === "/auth";
 
   return (
-    <div className="w-screen h-screen flex flex-col">
+    <div className="w-screen h-screen flex flex-col bg-neutral-600">
       {!isAuthPage && (
-        <header>
-          <section>
-            <NavBar />
-          </section>
+        <header className="h-[10%]">
+          <NavBar />
         </header>
       )}
 
       <main
-        className={`flex-1  ${isAuthPage ? "h-full" : "h-[80%]"} overflow-auto`}
+        className={`flex-1 overflow-auto ${isAuthPage ? "h-full" : "h-[90%]"}`}
       >
-        <div>{children}</div>
+        {children}
       </main>
     </div>
   );

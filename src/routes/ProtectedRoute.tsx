@@ -1,12 +1,29 @@
+// ProtectedRoute.tsx
+import { Route, Redirect } from "wouter-preact";
+import { FunctionalComponent } from "preact";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { JSX } from "preact/jsx-runtime";
-import { Redirect } from "wouter-preact";
+import { AppLayout } from "@/Layouts/AppLayout";
 
-export const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-  const auth = useAuthStore((state) => state);
+interface ProtectedRouteProps {
+  path: string;
+  component: FunctionalComponent;
+}
 
-  if (!auth.isAuthenticated) {
+export const ProtectedRoute: FunctionalComponent<ProtectedRouteProps> = ({
+  path,
+  component: Component,
+}) => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  if (!isAuthenticated) {
     return <Redirect to="/auth" />;
   }
-  return <div>{children}</div>;
+
+  const Wrapped = () => (
+    <AppLayout>
+      <Component />
+    </AppLayout>
+  );
+
+  return <Route path={path} component={Wrapped} />;
 };
