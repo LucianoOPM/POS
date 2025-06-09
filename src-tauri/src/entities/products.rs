@@ -11,6 +11,7 @@ pub struct Model {
     #[sea_orm(unique)]
     pub bar_code: String,
     pub stock: i32,
+    pub max_stock: i32,
     pub is_active: bool,
     #[sea_orm(column_type = "Decimal(Some((10, 2)))")]
     pub unit_price: Decimal,

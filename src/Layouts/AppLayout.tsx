@@ -19,9 +19,11 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       )}
 
       <main
-        className={`flex-1 overflow-auto ${isAuthPage ? "h-full" : "h-[90%]"}`}
+        className={`flex-1 overflow-auto flex justify-center ${
+          isAuthPage ? "h-full" : "h-[90%]"
+        }`}
       >
-        {children}
+        <div className="w-full max-w-[80vw]">{children}</div>
       </main>
     </div>
   );

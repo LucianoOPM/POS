@@ -7,6 +7,9 @@ import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useEffect, useState } from "preact/hooks";
 import { ProductsView } from "./products/View";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 function App() {
   const setSession = useAuthStore((state) => state.setSession);
@@ -28,14 +31,16 @@ function App() {
   if (loading) return <div>Cargando...</div>;
 
   return (
-    <Router hook={useHashLocation}>
-      <Switch>
-        <Route path="/auth" component={AuthView} />
-        <ProtectedRoute path="/dashboard" component={DashboardView} />
-        <ProtectedRoute path="/products" component={ProductsView} />
-        <Route>404 - Not Found</Route>
-      </Switch>
-    </Router>
+    <QueryClientProvider client={queryClient}>
+      <Router hook={useHashLocation}>
+        <Switch>
+          <Route path="/auth" component={AuthView} />
+          <ProtectedRoute path="/dashboard" component={DashboardView} />
+          <ProtectedRoute path="/products" component={ProductsView} />
+          <Route>404 - Not Found</Route>
+        </Switch>
+      </Router>
+    </QueryClientProvider>
   );
 }
 
