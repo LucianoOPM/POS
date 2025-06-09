@@ -32,6 +32,9 @@
       ],
       "@dashboard/*": [
         "./src/dashboard/*"
+      ],
+      "@products/*": [
+        "./src/products/*"
       ]
     }
   },

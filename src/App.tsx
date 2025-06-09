@@ -3,21 +3,23 @@ import { Switch, Route, Router } from "wouter-preact";
 import { useHashLocation } from "wouter-preact/use-hash-location";
 import { AuthView } from "@/auth/View";
 import { DashboardView } from "@dashboard/View";
-import { AppLayout } from "@/Layouts/AppLayout";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useEffect, useState } from "preact/hooks";
+import { ProductsView } from "./products/View";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 function App() {
   const setSession = useAuthStore((state) => state.setSession);
   const [, setLocation] = useHashLocation();
-  const [loading, setLoading] = useState(true); // <-- Nuevo estado
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
         await setSession();
-        setLocation("/dashboard");
       } catch (e) {
         setLocation("/auth");
       } finally {
@@ -26,19 +28,19 @@ function App() {
     })();
   }, []);
 
-  if (loading) return <div>Cargando...</div>; // <-- No renderiza rutas hasta saber
+  if (loading) return <div>Cargando...</div>;
 
   return (
-    <Router hook={useHashLocation}>
-      <AppLayout>
+    <QueryClientProvider client={queryClient}>
+      <Router hook={useHashLocation}>
         <Switch>
-          <Route path={"/auth"} component={AuthView} />
-          <ProtectedRoute>
-            <Route path={"/dashboard"} component={DashboardView} />
-          </ProtectedRoute>
+          <Route path="/auth" component={AuthView} />
+          <ProtectedRoute path="/dashboard" component={DashboardView} />
+          <ProtectedRoute path="/products" component={ProductsView} />
+          <Route>404 - Not Found</Route>
         </Switch>
-      </AppLayout>
-    </Router>
+      </Router>
+    </QueryClientProvider>
   );
 }
 

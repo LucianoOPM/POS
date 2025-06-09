@@ -4,12 +4,13 @@ use std::{env, sync::Mutex};
 use tauri::{Builder, Manager};
 mod db;
 mod entities;
+mod products;
 mod sessions;
 mod users;
 
-use sessions::SessionModels::Session;
-
+use products::ProductCommands::{create_product, delete_product, get_products, update_product};
 use sessions::SessionControllers::{get_session, login, logout};
+use sessions::SessionModels::Session;
 use users::UserControllers::{create_user, get_users};
 
 #[derive(Debug)]
@@ -40,7 +41,11 @@ pub async fn run() {
             create_user,
             login,
             logout,
-            get_session
+            get_session,
+            get_products,
+            create_product,
+            update_product,
+            delete_product
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

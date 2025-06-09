@@ -17,6 +17,7 @@ impl MigrationTrait for Migration {
                 Products::IdProduct,
                 Products::IsActive,
                 Products::Stock,
+                Products::MaxStock,
                 Products::UnitPrice,
             ])
             .values_panic([
@@ -26,6 +27,7 @@ impl MigrationTrait for Migration {
                 Value::from(1).into(),
                 Value::from(true).into(),
                 Value::from(10).into(),
+                Value::from(50).into(),
                 Value::from(5000.00).into(),
             ])
             .values_panic([
@@ -35,6 +37,7 @@ impl MigrationTrait for Migration {
                 Value::from(2).into(),
                 Value::from(false).into(),
                 Value::from(3).into(),
+                Value::from(50).into(),
                 Value::from(1500.00).into(),
             ])
             .to_owned();

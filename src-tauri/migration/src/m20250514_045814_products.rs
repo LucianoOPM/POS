@@ -9,6 +9,7 @@ pub enum Products {
     IdProduct,
     Name,
     Stock,
+    MaxStock,
     IsActive,
     UnitPrice,
     BarCode,
@@ -27,6 +28,7 @@ impl MigrationTrait for Migration {
                     .col(string(Products::Name))
                     .col(string(Products::BarCode).unique_key())
                     .col(integer(Products::Stock).default(0))
+                    .col(integer(Products::MaxStock).default(0))
                     .col(boolean(Products::IsActive).default(true))
                     .col(integer(Products::UnitPrice).decimal_len(10, 2))
                     .col(text(Products::Description))
