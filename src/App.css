@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+/* Estilos globales para aplicar tema */
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
+
+@theme {
+  /* Colores Primarios - Verde Ejecutivo */
+  --color-primary-50: #f0f9f2;
+  --color-primary-100: #dcf0e0;
+  --color-primary-200: #bae2c4;
+  --color-primary-300: #8bd1a1;
+  --color-primary-400: #5eb87d;
+  --color-primary-500: #3a9d5f;
+  --color-primary-600: #2a8450;
+  --color-primary-700: #216a41;
+  --color-primary-800: #1d5535;
+  --color-primary-900: #17442b;
+  --color-primary-950: #0d2719;
+
+  /* Colores Secundarios - Gris Azulado Neutro */
+  --color-secondary-50: #f8fafc;
+  --color-secondary-100: #f1f5f9;
+  --color-secondary-200: #e2e8f0;
+  --color-secondary-300: #cbd5e1;
+  --color-secondary-400: #94a3b8;
+  --color-secondary-500: #64748b;
+  --color-secondary-600: #475569;
+  --color-secondary-700: #334155;
+  --color-secondary-800: #1e293b;
+  --color-secondary-900: #0f172a;
+  --color-secondary-950: #0a0f1a;
+
+  /* Colores Funcionales para Punto de Venta */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+}
+
+/* Variables de tema (fuera de @theme para que funcionen con media queries) */
+:root {
+  /* Colores de Fondo */
+  --color-background: #ffffff;
+  --color-surface: #f8fafc;
+  --color-surface-elevated: #ffffff;
+
+  /* Colores de Texto */
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #6b7280;
+  --color-text-on-primary: #ffffff;
+  --color-text-on-secondary: #ffffff;
+
+  /* Colores de Interfaz */
+  --color-border: #e5e7eb;
+  --color-divider: #f1f5f9;
+  --color-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Colores de Estados */
+  --color-hover: rgba(58, 157, 95, 0.08);
+  --color-active: rgba(58, 157, 95, 0.16);
+  --color-focus: rgba(58, 157, 95, 0.24);
+  --color-disabled: #f3f4f6;
+}
+
+/* Clases personalizadas para usar el tema dinámico */
+@layer utilities {
+  .bg-surface { background-color: var(--color-surface); }
+  .bg-surface-elevated { background-color: var(--color-surface-elevated); }
+  .bg-app { background-color: var(--color-background); }
+
+  .text-primary { color: var(--color-text-primary); }
+  .text-secondary { color: var(--color-text-secondary); }
+  .text-tertiary { color: var(--color-text-tertiary); }
+
+  .border-theme { border-color: var(--color-border); }
+}
+
+/* Sobrescribir colores de Tailwind en modo oscuro */
+@media (prefers-color-scheme: dark) {
+  /* Fondos */
+  .bg-white { background-color: var(--color-surface-elevated) !important; }
+  .bg-slate-50 { background-color: var(--color-surface) !important; }
+  .bg-slate-100, .bg-gray-50 { background-color: var(--color-background) !important; }
+  .bg-gray-100 { background-color: var(--color-surface) !important; }
+  .bg-gray-200 { background-color: var(--color-border) !important; }
+
+  /* Textos */
+  .text-gray-400, .text-gray-500 { color: var(--color-text-tertiary) !important; }
+  .text-gray-600, .text-gray-700 { color: var(--color-text-secondary) !important; }
+  .text-gray-800, .text-gray-900 { color: var(--color-text-primary) !important; }
+  .text-slate-300 { color: var(--color-text-tertiary) !important; }
+  .text-slate-500 { color: var(--color-text-secondary) !important; }
+
+  /* Bordes */
+  .border-gray-100, .border-gray-200 { border-color: var(--color-border) !important; }
+
+  /* Hover states */
+  .hover\:bg-gray-50:hover, .hover\:bg-white:hover { background-color: var(--color-hover) !important; }
+  .hover\:bg-gray-100:hover, .hover\:bg-gray-200:hover { background-color: var(--color-active) !important; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #0f172a;          /* fondo principal */
+    --color-surface: #111827;             /* cards */
+    --color-surface-elevated: #1f2937;
+
+    --color-text-primary: #f9fafb;
+    --color-text-secondary: #cbd5e1;
+    --color-text-tertiary: #94a3b8;
+
+    --color-border: #1e293b;
+    --color-divider: #1e293b;
+
+    --color-overlay: rgba(0, 0, 0, 0.7);
+
+    /* Estados */
+    --color-hover: rgba(94, 184, 125, 0.12);
+    --color-active: rgba(94, 184, 125, 0.24);
+    --color-focus: rgba(94, 184, 125, 0.32);
+    --color-disabled: #1f2937;
+  }
+}
