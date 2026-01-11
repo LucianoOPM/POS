@@ -15,6 +15,14 @@ import Sales from "@/pages/sales/Index";
 import Inventory from "@/pages/inventory/Index";
 import Reports from "@/pages/reports/Index";
 
+// Report Views
+import DashboardReport from "@/pages/reports/views/DashboardReport";
+import SalesOverTimeReport from "@/pages/reports/views/SalesOverTimeReport";
+import ProductReport from "@/pages/reports/views/ProductReport";
+import CategoryReport from "@/pages/reports/views/CategoryReport";
+import PaymentMethodReport from "@/pages/reports/views/PaymentMethodReport";
+import RefundsReport from "@/pages/reports/views/RefundsReport";
+
 // Tipos
 interface RouteConfig {
   path: string;
@@ -65,6 +73,54 @@ export const routes: RouteConfig[] = [
       PERMISSIONS.REPORTS_FINANCIAL,
     ],
     title: "Reportes",
+  },
+  {
+    path: "/reports/dashboard",
+    component: DashboardReport,
+    layout: "main",
+    requireAuth: true,
+    requiredAnyPermission: [PERMISSIONS.REPORTS_SALES, PERMISSIONS.REPORTS_FINANCIAL],
+    title: "Dashboard Ejecutivo",
+  },
+  {
+    path: "/reports/sales-over-time",
+    component: SalesOverTimeReport,
+    layout: "main",
+    requireAuth: true,
+    requiredPermission: PERMISSIONS.REPORTS_SALES,
+    title: "Ventas en el Tiempo",
+  },
+  {
+    path: "/reports/products",
+    component: ProductReport,
+    layout: "main",
+    requireAuth: true,
+    requiredAnyPermission: [PERMISSIONS.REPORTS_SALES, PERMISSIONS.REPORTS_INVENTORY],
+    title: "Reporte por Producto",
+  },
+  {
+    path: "/reports/categories",
+    component: CategoryReport,
+    layout: "main",
+    requireAuth: true,
+    requiredAnyPermission: [PERMISSIONS.REPORTS_SALES, PERMISSIONS.REPORTS_INVENTORY],
+    title: "Reporte por Categoria",
+  },
+  {
+    path: "/reports/payment-methods",
+    component: PaymentMethodReport,
+    layout: "main",
+    requireAuth: true,
+    requiredPermission: PERMISSIONS.REPORTS_FINANCIAL,
+    title: "Metodos de Pago",
+  },
+  {
+    path: "/reports/refunds",
+    component: RefundsReport,
+    layout: "main",
+    requireAuth: true,
+    requiredAnyPermission: [PERMISSIONS.REPORTS_SALES, PERMISSIONS.REPORTS_FINANCIAL],
+    title: "Reporte de Reembolsos",
   },
 ];
 

@@ -1,4 +1,12 @@
-import { BarChart3, Package, Settings, ShoppingCart, Users } from "lucide-preact";
+import {
+  BanknoteArrowUp,
+  BarChart3,
+  Package,
+  Settings,
+  ShieldUser,
+  ShoppingCart,
+  Users,
+} from "lucide-preact";
 import { PERMISSIONS } from "@/types/permissions";
 
 export interface MenuItem {
@@ -19,6 +27,18 @@ export const MENU_ITEMS: MenuItem[] = [
     permission: PERMISSIONS.SALES_CREATE,
   },
   {
+    id: "refunds",
+    icon: BanknoteArrowUp,
+    label: "Reembolsos",
+    permission: PERMISSIONS.SALES_REFUND,
+  },
+  {
+    id: "users",
+    icon: ShieldUser,
+    label: "Usuarios",
+    permission: PERMISSIONS.USERS_VIEW,
+  },
+  {
     id: "inventory",
     icon: Package,
     label: "Productos",
@@ -28,7 +48,7 @@ export const MENU_ITEMS: MenuItem[] = [
     id: "clients",
     icon: Users,
     label: "Clientes",
-    permission: PERMISSIONS.USERS_VIEW,
+    permission: PERMISSIONS.CUSTOMERS_VIEW,
   },
   {
     id: "reports",

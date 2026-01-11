@@ -1,80 +1,72 @@
-import { useState, useEffect } from "preact/hooks";
-import { useAuthStore } from "@/store/authStore";
-import { PERMISSIONS } from "@/types/permissions";
-import ReportsStats from "./components/ReportsStats";
-import ReportsToolbar from "./components/ReportsToolbar";
-import ReportsTabs from "./components/ReportsTabs";
-import SalesReport from "./components/SalesReport";
-import ProductMovementReport from "./components/ProductMovementReport";
-import FinancialReport from "./components/FinancialReport";
-import type { DateRange, ReportType, ExportFormat } from "@/types";
-import { MOCK_SALES_SUMMARY } from "@/mocks/reports";
+import { useState, useMemo } from "preact/hooks";
+import { useLocation } from "wouter";
+import { Search } from "lucide-preact";
+import { availableReports } from "@/actions/reports";
+import ReportCard from "./components/ReportCard";
 
-function getInitialDateRange(): DateRange {
-  const today = new Date();
-  const start = new Date(today);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(today);
-  end.setHours(23, 59, 59, 999);
-  return { startDate: start, endDate: end };
-}
+export default function Index() {
+  const [, navigate] = useLocation();
+  const [search, setSearch] = useState<string>("");
 
-function getDefaultTab(hasPermission: (p: string) => boolean): ReportType {
-  if (hasPermission(PERMISSIONS.REPORTS_SALES)) return "sales";
-  if (hasPermission(PERMISSIONS.REPORTS_INVENTORY)) return "products";
-  if (hasPermission(PERMISSIONS.REPORTS_FINANCIAL)) return "financial";
-  return "sales";
-}
+  const reports = availableReports;
 
-export default function Reports() {
-  const { hasPermission } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<ReportType>(() => getDefaultTab(hasPermission));
-  const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange);
+  // Filtrar reportes por nombre
+  const filteredReports = useMemo(() => {
+    if (!search.trim()) return reports;
 
-  // Asegurarse de que el tab activo sea uno que el usuario puede ver
-  useEffect(() => {
-    if (activeTab === "sales" && !hasPermission(PERMISSIONS.REPORTS_SALES)) {
-      setActiveTab(getDefaultTab(hasPermission));
-    } else if (activeTab === "products" && !hasPermission(PERMISSIONS.REPORTS_INVENTORY)) {
-      setActiveTab(getDefaultTab(hasPermission));
-    } else if (activeTab === "financial" && !hasPermission(PERMISSIONS.REPORTS_FINANCIAL)) {
-      setActiveTab(getDefaultTab(hasPermission));
-    }
-  }, [activeTab, hasPermission]);
+    const searchLower = search.toLowerCase();
+    return reports.filter(
+      (report) =>
+        report.name.toLowerCase().includes(searchLower) ||
+        report.description.toLowerCase().includes(searchLower)
+    );
+  }, [reports, search]);
 
-  const handleExport = (format: ExportFormat) => {
-    // Funcionalidad pendiente
-    console.log(`Exportar a ${format} - Proximamente`);
+  const handleReportClick = (id: string) => {
+    navigate(`/reports/${id}`);
   };
-
-  // Datos del resumen (mock por ahora)
-  const summary = MOCK_SALES_SUMMARY;
 
   return (
     <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden animate-in fade-in duration-300">
-      {/* Stats Header */}
-      <ReportsStats
-        totalSales={summary.totalSales}
-        totalRevenue={summary.totalRevenue}
-        totalProfit={summary.totalProfit}
-        averageTicket={summary.averageTicket}
-      />
+      {/* Toolbar con filtro */}
+      <div className="px-6 py-4 bg-white border-b border-border">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Buscar reporte por nombre..."
+            value={search}
+            onInput={(e) => setSearch((e.target as HTMLInputElement).value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-background border border-input rounded-lg text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+          />
+        </div>
+      </div>
 
-      {/* Toolbar */}
-      <ReportsToolbar
-        dateRange={dateRange}
-        onDateRangeChange={setDateRange}
-        onExport={handleExport}
-      />
-
-      {/* Tabs */}
-      <ReportsTabs activeTab={activeTab} onTabChange={setActiveTab} />
-
-      {/* Contenido del reporte */}
-      <div className="flex-1 px-6 py-6 overflow-auto">
-        {activeTab === "sales" && <SalesReport />}
-        {activeTab === "products" && <ProductMovementReport />}
-        {activeTab === "financial" && <FinancialReport />}
+      {/* Grid de reportes */}
+      <div className="flex-1 p-6 overflow-auto">
+        {filteredReports.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-64 text-center">
+            <div className="p-4 bg-muted rounded-full mb-4">
+              <Search className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-medium text-foreground mb-1">No se encontraron reportes</h3>
+            <p className="text-sm text-muted-foreground">Intenta con otro termino de busqueda</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {filteredReports.map((report) => (
+              <div key={report.id} className="group cursor-pointer h-full">
+                <ReportCard
+                  title={report.name}
+                  description={report.description}
+                  icon={report.icon}
+                  color={report.color}
+                  onClick={() => handleReportClick(report.id)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

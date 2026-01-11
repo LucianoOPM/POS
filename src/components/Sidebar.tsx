@@ -7,8 +7,10 @@ import { useAuthStore } from "@/store/authStore";
 // Mapeo de IDs de menú a rutas
 const ROUTE_MAP: Record<string, string> = {
   pos: "/",
+  refunds: "/refunds",
   inventory: "/inventory",
   clients: "/clients",
+  users: "/users",
   reports: "/reports",
   settings: "/settings",
 };

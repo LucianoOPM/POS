@@ -32,6 +32,12 @@ export const PERMISSIONS = {
   USERS_EDIT: "users.edit",
   USERS_DELETE: "users.delete",
 
+  //Clientes
+  CUSTOMERS_VIEW: "customer.view",
+  CUSTOMERS_CREATE: "customer.create",
+  CUSTOMERS_UPDATE: "customer.update",
+  CUSTOMERS_DELETE: "customer.delete",
+
   // Perfiles
   PROFILES_VIEW: "profiles.view",
   PROFILES_MANAGE: "profiles.manage",

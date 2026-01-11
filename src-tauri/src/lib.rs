@@ -6,14 +6,20 @@ use sea_orm::DatabaseConnection;
 mod categories;
 mod entities;
 mod products;
+mod reports;
 mod sales;
 mod sessions;
+mod utils;
 
 use categories::handlers::{
     create_category, delete_category, get_all_categories, get_category_by_id, hard_delete_category,
     update_category,
 };
 use products::ProductHandlers::{create_product, delete_product, get_products, update_product};
+use reports::ReportsHandler::{
+    get_category_report, get_dashboard_report, get_payment_method_report, get_product_report,
+    get_refunds_report, get_sales_over_time_report,
+};
 use sales::SalesHandler::{create_sale, get_payment_methods, get_sales};
 use sessions::SessionHandler::{get_session, login, logout};
 use sessions::SessionsStructs::Session;
@@ -59,6 +65,13 @@ pub async fn run() {
             get_sales,
             create_sale,
             get_payment_methods,
+            // Reports
+            get_dashboard_report,
+            get_sales_over_time_report,
+            get_product_report,
+            get_category_report,
+            get_payment_method_report,
+            get_refunds_report,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
