@@ -32,7 +32,13 @@ export default function Sidebar() {
 
   // Determinar el módulo activo basado en la ruta actual
   const getActiveModule = () => {
-    const activeEntry = Object.entries(ROUTE_MAP).find(([_, route]) => route === location);
+    // Para la ruta raíz, solo coincide exactamente
+    if (location === "/") return "pos";
+
+    // Para otras rutas, buscar la que coincida como prefijo
+    const activeEntry = Object.entries(ROUTE_MAP).find(
+      ([_, route]) => route !== "/" && location.startsWith(route)
+    );
     return activeEntry ? activeEntry[0] : "pos";
   };
 
