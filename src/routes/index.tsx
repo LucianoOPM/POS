@@ -14,6 +14,7 @@ import Login from "@/pages/Login";
 import Sales from "@/pages/sales/Index";
 import Inventory from "@/pages/inventory/Index";
 import Reports from "@/pages/reports/Index";
+import Users from "@/pages/users/Index";
 
 // Report Views
 import DashboardReport from "@/pages/reports/views/DashboardReport";
@@ -61,6 +62,14 @@ export const routes: RouteConfig[] = [
     requireAuth: true,
     requiredPermission: PERMISSIONS.PRODUCTS_VIEW,
     title: "Inventario",
+  },
+  {
+    path: "/users",
+    component: Users,
+    layout: "main",
+    requireAuth: true,
+    requiredPermission: PERMISSIONS.USERS_VIEW,
+    title: "Usuarios",
   },
   {
     path: "/reports",

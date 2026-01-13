@@ -8,7 +8,6 @@ import InventoryTable from "@/pages/inventory/components/InventoryTable";
 import InventoryToolbar from "./components/InventoryToolbar";
 import InventoryStats from "./components/InventoryStats";
 import type { Product, InventoryFilters, ProductListResponse, CategoryListResponse } from "@/types";
-import { PermissionGate } from "@/components/PermissionGate";
 
 export default function Index() {
   const session = useAuthStore((state) => state.session);

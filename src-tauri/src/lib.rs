@@ -9,6 +9,7 @@ mod products;
 mod reports;
 mod sales;
 mod sessions;
+mod users;
 mod utils;
 
 use categories::handlers::{
@@ -23,6 +24,7 @@ use reports::ReportsHandler::{
 use sales::SalesHandler::{create_sale, get_payment_methods, get_sales};
 use sessions::SessionHandler::{get_session, login, logout};
 use sessions::SessionsStructs::Session;
+use users::UsersHandler::{create_user, get_profiles, get_users, toggle_user_status, update_user};
 
 #[derive(Debug)]
 struct AppState {
@@ -72,6 +74,12 @@ pub async fn run() {
             get_category_report,
             get_payment_method_report,
             get_refunds_report,
+            // Users
+            get_users,
+            toggle_user_status,
+            get_profiles,
+            create_user,
+            update_user,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

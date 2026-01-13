@@ -88,6 +88,10 @@ pub async fn login(
                 return Err(INVALID_CREDENTIALS);
             }
 
+            if !&user.is_active {
+                return Err(ACCOUNT_INACTIVE);
+            }
+
             (user, profile)
         }
         // Usuario no encontrado o sin perfil - retornar mensaje genérico por seguridad
