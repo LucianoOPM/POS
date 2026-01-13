@@ -59,3 +59,6 @@ export type {
   ReportsToolbarProps,
   ReportsTabsProps,
 } from "./reports";
+
+// User types
+export type { UserRecord, UserFilter, UserListResponse, Profile, NewUser, UpdateUser } from "./user";
