@@ -14,6 +14,9 @@ mod m20260105_025937_seed_initial_data;
 mod m20260107_010000_permissions_table;
 mod m20260107_010001_profile_permissions_table;
 mod m20260107_010002_seed_permissions;
+mod m20260114_000000_settings_table;
+mod m20260114_000001_seed_settings;
+mod m20260114_000002_seed_settings_permissions;
 pub struct Migrator;
 
 #[async_trait::async_trait]
@@ -34,6 +37,9 @@ impl MigratorTrait for Migrator {
             Box::new(m20260107_010000_permissions_table::Migration),
             Box::new(m20260107_010001_profile_permissions_table::Migration),
             Box::new(m20260107_010002_seed_permissions::Migration),
+            Box::new(m20260114_000000_settings_table::Migration),
+            Box::new(m20260114_000001_seed_settings::Migration),
+            Box::new(m20260114_000002_seed_settings_permissions::Migration),
         ]
     }
 }
