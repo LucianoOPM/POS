@@ -11,4 +11,5 @@ pub use super::refunds::Entity as Refunds;
 pub use super::sale_details::Entity as SaleDetails;
 pub use super::sale_payments::Entity as SalePayments;
 pub use super::sales::Entity as Sales;
+pub use super::settings::Entity as Settings;
 pub use super::users::Entity as Users;

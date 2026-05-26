@@ -62,3 +62,32 @@ export type {
 
 // User types
 export type { UserRecord, UserFilter, UserListResponse, Profile, NewUser, UpdateUser } from "./user";
+
+// Refund types
+export type {
+  RefundRecord,
+  RefundDetailRecord,
+  RefundWithDetails,
+  RefundListResponse,
+  RefundFilters,
+  CreateRefundRequest,
+  RefundItemRequest,
+  RefundsTableProps,
+  RefundsToolbarProps,
+  SaleItemForRefund,
+  SaleForRefund,
+  RecentSale,
+  RefundItemSelection,
+} from "./refund";
+
+// Settings types
+export type {
+  Setting,
+  SettingsByCategory,
+  SettingsCategory,
+  SettingsCategoryInfo,
+  UpdateSettingRequest,
+  UpdateSettingsBatchRequest,
+  UpdateSettingsResponse,
+  SettingFieldProps,
+} from "./settings";

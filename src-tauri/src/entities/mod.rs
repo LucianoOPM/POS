@@ -13,4 +13,5 @@ pub mod refunds;
 pub mod sale_details;
 pub mod sale_payments;
 pub mod sales;
+pub mod settings;
 pub mod users;

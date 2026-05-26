@@ -41,6 +41,10 @@ export const PERMISSIONS = {
   // Perfiles
   PROFILES_VIEW: "profiles.view",
   PROFILES_MANAGE: "profiles.manage",
+
+  // Configuracion
+  SETTINGS_VIEW: "settings.view",
+  SETTINGS_EDIT: "settings.edit",
 } as const;
 
 export type PermissionCode = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

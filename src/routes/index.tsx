@@ -15,6 +15,9 @@ import Sales from "@/pages/sales/Index";
 import Inventory from "@/pages/inventory/Index";
 import Reports from "@/pages/reports/Index";
 import Users from "@/pages/users/Index";
+import Refunds from "@/pages/refunds/Index";
+import RefundCreate from "@/pages/refunds/Create";
+import Settings from "@/pages/settings/Index";
 
 // Report Views
 import DashboardReport from "@/pages/reports/views/DashboardReport";
@@ -70,6 +73,22 @@ export const routes: RouteConfig[] = [
     requireAuth: true,
     requiredPermission: PERMISSIONS.USERS_VIEW,
     title: "Usuarios",
+  },
+  {
+    path: "/refunds",
+    component: Refunds,
+    layout: "main",
+    requireAuth: true,
+    requiredPermission: PERMISSIONS.SALES_REFUND,
+    title: "Reembolsos",
+  },
+  {
+    path: "/refunds/create",
+    component: RefundCreate,
+    layout: "main",
+    requireAuth: true,
+    requiredPermission: PERMISSIONS.SALES_REFUND,
+    title: "Nuevo Reembolso",
   },
   {
     path: "/reports",
@@ -130,6 +149,14 @@ export const routes: RouteConfig[] = [
     requireAuth: true,
     requiredAnyPermission: [PERMISSIONS.REPORTS_SALES, PERMISSIONS.REPORTS_FINANCIAL],
     title: "Reporte de Reembolsos",
+  },
+  {
+    path: "/settings",
+    component: Settings,
+    layout: "main",
+    requireAuth: true,
+    requiredPermission: PERMISSIONS.SETTINGS_VIEW,
+    title: "Configuracion",
   },
 ];
 

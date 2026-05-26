@@ -6,9 +6,11 @@ use sea_orm::DatabaseConnection;
 mod categories;
 mod entities;
 mod products;
+mod refunds;
 mod reports;
 mod sales;
 mod sessions;
+mod settings;
 mod users;
 mod utils;
 
@@ -25,6 +27,14 @@ use sales::SalesHandler::{create_sale, get_payment_methods, get_sales};
 use sessions::SessionHandler::{get_session, login, logout};
 use sessions::SessionsStructs::Session;
 use users::UsersHandler::{create_user, get_profiles, get_users, toggle_user_status, update_user};
+use refunds::RefundsHandler::{
+    create_refund, delete_refund, get_recent_sales_for_refund, get_refund_by_id, get_refunds,
+    get_sale_for_refund,
+};
+use settings::SettingsHandler::{
+    get_setting, get_settings, get_settings_by_category, test_erp_connection, trigger_erp_sync,
+    update_setting, update_settings_batch,
+};
 
 #[derive(Debug)]
 struct AppState {
@@ -80,6 +90,21 @@ pub async fn run() {
             get_profiles,
             create_user,
             update_user,
+            // Refunds
+            get_refunds,
+            get_refund_by_id,
+            create_refund,
+            delete_refund,
+            get_recent_sales_for_refund,
+            get_sale_for_refund,
+            // Settings
+            get_settings,
+            get_settings_by_category,
+            get_setting,
+            update_setting,
+            update_settings_batch,
+            test_erp_connection,
+            trigger_erp_sync,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

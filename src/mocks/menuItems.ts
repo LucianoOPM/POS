@@ -64,6 +64,6 @@ export const MENU_ITEMS: MenuItem[] = [
     id: "settings",
     icon: Settings,
     label: "Config",
-    permission: PERMISSIONS.PROFILES_MANAGE,
+    permission: PERMISSIONS.SETTINGS_VIEW,
   },
 ];
