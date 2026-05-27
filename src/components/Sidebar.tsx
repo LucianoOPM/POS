@@ -12,6 +12,7 @@ const ROUTE_MAP: Record<string, string> = {
   clients: "/clients",
   users: "/users",
   reports: "/reports",
+  printing: "/printing",
   settings: "/settings",
 };
 

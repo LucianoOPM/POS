@@ -91,3 +91,6 @@ export type {
   UpdateSettingsResponse,
   SettingFieldProps,
 } from "./settings";
+
+// Printing types
+export type { PrintJob, PrinterConfig } from "./printing";

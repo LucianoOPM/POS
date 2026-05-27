@@ -5,6 +5,7 @@ mod db;
 use sea_orm::DatabaseConnection;
 mod categories;
 mod entities;
+mod printing;
 mod products;
 mod refunds;
 mod reports;
@@ -17,6 +18,10 @@ mod utils;
 use categories::handlers::{
     create_category, delete_category, get_all_categories, get_category_by_id, hard_delete_category,
     update_category,
+};
+use printing::{
+    configure_printer, get_print_jobs, get_printer_config, preview_receipt, print_receipt,
+    PrintService, PrinterConfig,
 };
 use products::ProductHandlers::{create_product, delete_product, get_products, update_product};
 use reports::ReportsHandler::{
@@ -36,10 +41,10 @@ use settings::SettingsHandler::{
     update_setting, update_settings_batch,
 };
 
-#[derive(Debug)]
 struct AppState {
     database: DatabaseConnection,
     session: Mutex<Option<Session>>,
+    print_service: tokio::sync::Mutex<PrintService>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -51,11 +56,14 @@ pub async fn run() {
         .await
         .expect("Error conectando a la base de datos");
 
+    let print_service = PrintService::new(PrinterConfig::default());
+
     tauri::Builder::default()
         .setup(|app| {
             app.manage(AppState {
                 database: db_connection,
                 session: Mutex::new(None),
+                print_service: tokio::sync::Mutex::new(print_service),
             });
             Ok(())
         })
@@ -105,6 +113,12 @@ pub async fn run() {
             update_settings_batch,
             test_erp_connection,
             trigger_erp_sync,
+            // Printing
+            print_receipt,
+            preview_receipt,
+            get_print_jobs,
+            configure_printer,
+            get_printer_config,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

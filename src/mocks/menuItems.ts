@@ -2,6 +2,7 @@ import {
   BanknoteArrowUp,
   BarChart3,
   Package,
+  Printer,
   Settings,
   ShieldUser,
   ShoppingCart,
@@ -59,6 +60,12 @@ export const MENU_ITEMS: MenuItem[] = [
       PERMISSIONS.REPORTS_INVENTORY,
       PERMISSIONS.REPORTS_FINANCIAL,
     ],
+  },
+  {
+    id: "printing",
+    icon: Printer,
+    label: "Impresión",
+    permission: PERMISSIONS.SETTINGS_VIEW,
   },
   {
     id: "settings",
