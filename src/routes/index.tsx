@@ -18,6 +18,7 @@ import Users from "@/pages/users/Index";
 import Refunds from "@/pages/refunds/Index";
 import RefundCreate from "@/pages/refunds/Create";
 import Settings from "@/pages/settings/Index";
+import Printing from "@/pages/printing/Index";
 
 // Report Views
 import DashboardReport from "@/pages/reports/views/DashboardReport";
@@ -157,6 +158,14 @@ export const routes: RouteConfig[] = [
     requireAuth: true,
     requiredPermission: PERMISSIONS.SETTINGS_VIEW,
     title: "Configuracion",
+  },
+  {
+    path: "/printing",
+    component: Printing,
+    layout: "main",
+    requireAuth: true,
+    requiredPermission: PERMISSIONS.SETTINGS_VIEW,
+    title: "Impresión",
   },
 ];
 

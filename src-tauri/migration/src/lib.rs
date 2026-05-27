@@ -17,6 +17,7 @@ mod m20260107_010002_seed_permissions;
 mod m20260114_000000_settings_table;
 mod m20260114_000001_seed_settings;
 mod m20260114_000002_seed_settings_permissions;
+mod m20260525_000001_ticket_prints_table;
 pub struct Migrator;
 
 #[async_trait::async_trait]
@@ -40,6 +41,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20260114_000000_settings_table::Migration),
             Box::new(m20260114_000001_seed_settings::Migration),
             Box::new(m20260114_000002_seed_settings_permissions::Migration),
+            Box::new(m20260525_000001_ticket_prints_table::Migration),
         ]
     }
 }
