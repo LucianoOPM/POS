@@ -1,6 +1,6 @@
 import { Route, Switch, Redirect, Router } from "wouter";
 import { useHashLocation } from "wouter/use-hash-location";
-import { ComponentChildren, JSX } from "preact";
+import { JSX } from "preact";
 import { useEffect } from "preact/hooks";
 import { useAuthStore } from "@/store/authStore";
 import { PERMISSIONS } from "@/types/permissions";
@@ -169,22 +169,6 @@ export const routes: RouteConfig[] = [
   },
 ];
 
-interface LayoutWrapperProps {
-  layout: "main" | "auth";
-  children: ComponentChildren;
-}
-
-/**
- * Componente wrapper que aplica el layout correcto
- */
-function LayoutWrapper({ layout, children }: LayoutWrapperProps) {
-  if (layout === "auth") {
-    return <AuthLayout>{children}</AuthLayout>;
-  }
-
-  return <MainLayout>{children}</MainLayout>;
-}
-
 /**
  * Componente para mostrar cuando el usuario no tiene permisos
  */
@@ -207,6 +191,9 @@ function AccessDenied() {
   );
 }
 
+const authRoutes = routes.filter((r) => r.layout === "auth");
+const mainRoutes = routes.filter((r) => r.layout === "main");
+
 /**
  * Componente principal de rutas
  * Renderiza todas las rutas configuradas con sus respectivos layouts
@@ -218,7 +205,6 @@ export default function AppRoutes() {
     checkAuth();
   }, []);
 
-  // Mostrar loading mientras se verifica la sesión
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-50">
@@ -231,62 +217,71 @@ export default function AppRoutes() {
   }
 
   return (
-    <>
-      <Router hook={useHashLocation}>
+    <Router hook={useHashLocation}>
       <Switch>
-        {routes.map((route) => (
+        {/* Rutas de autenticación */}
+        {authRoutes.map((route) => (
           <Route key={route.path} path={route.path}>
             {() => {
-              // Si la ruta requiere autenticación y el usuario no está autenticado
-              if (route.requireAuth && !isAuthenticated) {
-                return <Redirect to="/login" />;
-              }
-
-              // Si el usuario está autenticado e intenta acceder al login
-              if (route.path === "/login" && isAuthenticated) {
-                return <Redirect to="/" />;
-              }
-
-              // Verificar permiso único
-              if (route.requiredPermission && !hasPermission(route.requiredPermission)) {
-                return <AccessDenied />;
-              }
-
-              // Verificar al menos uno de los permisos
-              if (route.requiredAnyPermission && !hasAnyPermission(route.requiredAnyPermission)) {
-                return <AccessDenied />;
-              }
-
+              if (isAuthenticated) return <Redirect to="/" />;
               const PageComponent = route.component;
-
               return (
-                <LayoutWrapper layout={route.layout}>
+                <AuthLayout>
                   <PageComponent />
-                </LayoutWrapper>
+                </AuthLayout>
               );
             }}
           </Route>
         ))}
 
-        {/* Ruta 404 - No encontrada */}
+        {/* Rutas principales — MainLayout persiste entre navegaciones */}
         <Route>
-          {() => (
-            <div className="flex items-center justify-center h-screen bg-background">
-              <div className="text-center">
-                <h1 className="text-6xl font-bold text-primary-950 mb-4">404</h1>
-                <p className="text-xl text-secondary-600 mb-8">Página no encontrada</p>
-                <a
-                  href="/#/"
-                  className="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
-                >
-                  Volver al inicio
-                </a>
-              </div>
-            </div>
-          )}
+          {() => {
+            if (!isAuthenticated) return <Redirect to="/login" />;
+            return (
+              <MainLayout>
+                <Switch>
+                  {mainRoutes.map((route) => (
+                    <Route key={route.path} path={route.path}>
+                      {() => {
+                        if (route.requiredPermission && !hasPermission(route.requiredPermission)) {
+                          return <AccessDenied />;
+                        }
+                        if (
+                          route.requiredAnyPermission &&
+                          !hasAnyPermission(route.requiredAnyPermission)
+                        ) {
+                          return <AccessDenied />;
+                        }
+                        const PageComponent = route.component;
+                        return <PageComponent />;
+                      }}
+                    </Route>
+                  ))}
+
+                  {/* 404 dentro del layout principal */}
+                  <Route>
+                    {() => (
+                      <div className="flex items-center justify-center h-full bg-background">
+                        <div className="text-center">
+                          <h1 className="text-6xl font-bold text-primary-950 mb-4">404</h1>
+                          <p className="text-xl text-secondary-600 mb-8">Página no encontrada</p>
+                          <a
+                            href="/#/"
+                            className="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                          >
+                            Volver al inicio
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </Route>
+                </Switch>
+              </MainLayout>
+            );
+          }}
         </Route>
       </Switch>
     </Router>
-    </>
   );
 }

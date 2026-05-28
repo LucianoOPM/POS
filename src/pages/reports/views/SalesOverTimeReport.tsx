@@ -40,7 +40,7 @@ export default function SalesOverTimeReport() {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden animate-in fade-in duration-300">
+    <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden">
       {/* Header */}
       <div className="px-6 py-4 bg-white border-b border-border">
         <div className="flex items-center justify-between">

@@ -46,7 +46,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-50 animate-in fade-in duration-300">
+    <div className="h-full flex flex-col bg-slate-50">
       <SettingsHeader />
 
       <div className="flex-1 flex min-h-0">
