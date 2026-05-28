@@ -11,7 +11,7 @@ import type {
   SalesProduct,
 } from "@/types";
 import { salesActions } from "@/actions/sales";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 
 export default function Sales() {
   const [viewState, setViewState] = useState<string>("sales");
@@ -126,6 +126,7 @@ export default function Sales() {
       // Éxito - mostrar ticket
       setCreatedSaleId(response.sale_id);
       setViewState("ticket");
+      mutate("low_stock");
     } catch (err) {
       console.error("Error creating sale:", err);
       setError(err instanceof Error ? err.message : String(err));

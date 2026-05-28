@@ -121,19 +121,19 @@ pub async fn update_settings_batch(
     require_permission(&state, "settings.edit")?;
     let db = &state.database;
 
+    let keys: Vec<String> = data.settings.iter().map(|r| r.key.clone()).collect();
+
+    let existing = Settings::find()
+        .filter(settings::Column::Key.is_in(keys))
+        .all(db)
+        .await
+        .map_err(|_| DB_ERROR)?;
+
     let mut updated_settings = Vec::new();
 
     for update_request in data.settings {
-        // Find the setting
-        let setting = Settings::find()
-            .filter(settings::Column::Key.eq(&update_request.key))
-            .one(db)
-            .await
-            .map_err(|_| DB_ERROR)?;
-
-        if let Some(setting) = setting {
-            // Update the setting
-            let mut active_model: settings::ActiveModel = setting.into();
+        if let Some(setting) = existing.iter().find(|s| s.key == update_request.key) {
+            let mut active_model: settings::ActiveModel = setting.clone().into();
             active_model.value = ActiveValue::Set(update_request.value);
             active_model.updated_by = ActiveValue::Set(Some(update_request.updated_by));
             active_model.updated_at = ActiveValue::Set(Utc::now().into());

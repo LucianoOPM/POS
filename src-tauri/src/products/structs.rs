@@ -10,6 +10,7 @@ pub struct Product {
     pub category_name: Option<String>,
     pub code: String,
     pub stock: i32,
+    pub min_stock: Option<i32>,
     pub is_active: bool,
     pub price: Decimal,
     pub cost: Decimal,
@@ -28,6 +29,7 @@ impl Product {
             category_name: category.map(|c| c.name),
             code: product.code,
             stock: product.stock,
+            min_stock: product.min_stock,
             is_active: product.is_active,
             price: product.price,
             cost: product.cost,
@@ -45,6 +47,7 @@ impl From<products::Model> for Product {
             category_name: None,
             code: value.code,
             stock: value.stock,
+            min_stock: value.min_stock,
             is_active: value.is_active,
             price: value.price,
             cost: value.cost,
@@ -59,6 +62,7 @@ pub struct NewProduct {
     pub category_id: Option<i32>,
     pub code: String,
     pub stock: i32,
+    pub min_stock: Option<i32>,
     pub price: Decimal,
     pub cost: Decimal,
     pub tax: Decimal,
@@ -72,6 +76,7 @@ impl From<NewProduct> for products::ActiveModel {
             category_id: Set(value.category_id),
             code: Set(value.code),
             stock: Set(value.stock),
+            min_stock: Set(value.min_stock),
             price: Set(value.price),
             cost: Set(value.cost),
             tax: Set(value.tax / Decimal::from(100)), // Convertir porcentaje (12) a decimal (0.12)
@@ -88,6 +93,8 @@ pub struct UpdateProduct {
     pub category_id: Option<i32>,
     pub code: Option<String>,
     pub stock: Option<i32>,
+    pub min_stock: Option<i32>,
+    pub clear_min_stock: Option<bool>,
     pub is_active: Option<bool>,
     pub price: Option<Decimal>,
     pub cost: Option<Decimal>,
@@ -110,6 +117,11 @@ impl From<UpdateProduct> for products::ActiveModel {
         }
         if let Some(stock) = value.stock {
             active_model.stock = Set(stock);
+        }
+        if value.clear_min_stock == Some(true) {
+            active_model.min_stock = Set(None);
+        } else if let Some(min_stock) = value.min_stock {
+            active_model.min_stock = Set(Some(min_stock));
         }
         if let Some(is_active) = value.is_active {
             active_model.is_active = Set(is_active);
@@ -149,4 +161,12 @@ pub struct ProductListReturn {
     pub products: Vec<Product>,
     pub total_pages: u64,
     pub total_items: u64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct LowStockProduct {
+    pub id: i32,
+    pub name: String,
+    pub stock: u32,
+    pub threshold: u32,
 }

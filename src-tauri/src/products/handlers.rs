@@ -1,10 +1,12 @@
 use sea_orm::{
-    ActiveModelTrait, ActiveValue, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter,
-    QueryOrder, QuerySelect,
+    ActiveModelTrait, ActiveValue, ColumnTrait, Condition, EntityTrait, PaginatorTrait,
+    QueryFilter, QueryOrder, QuerySelect,
 };
+use sea_orm::sea_query::Expr;
+use sea_orm::ExprTrait;
 
-use super::structs::{NewProduct, Product, ProductFilter, ProductListReturn, UpdateProduct};
-use crate::entities::{categories::Entity as Categories, prelude::Products, products};
+use super::structs::{LowStockProduct, NewProduct, Product, ProductFilter, ProductListReturn, UpdateProduct};
+use crate::entities::{categories::Entity as Categories, prelude::Products, products, settings};
 use crate::sessions::require_permission;
 use crate::AppState;
 
@@ -125,4 +127,76 @@ pub async fn delete_product(
         .map_err(|_| "Ocurrió un error al eliminar el producto".to_string())?;
 
     Ok(Product::from(product))
+}
+
+#[tauri::command]
+pub async fn check_low_stock(
+    state: tauri::State<'_, AppState>,
+) -> Result<Vec<LowStockProduct>, String> {
+    require_permission(&state, "products.view")?;
+    let db = &state.database;
+
+    let inventory_settings = settings::Entity::find()
+        .filter(
+            Condition::any()
+                .add(settings::Column::Key.eq("inventory.low_stock_alerts"))
+                .add(settings::Column::Key.eq("inventory.low_stock_threshold")),
+        )
+        .all(db)
+        .await
+        .map_err(|_| DB_ERROR.to_string())?;
+
+    let alerts_enabled = inventory_settings
+        .iter()
+        .find(|s| s.key == "inventory.low_stock_alerts")
+        .map(|s| s.value != "false")
+        .unwrap_or(true);
+
+    if !alerts_enabled {
+        return Ok(vec![]);
+    }
+
+    let global_threshold: i32 = inventory_settings
+        .iter()
+        .find(|s| s.key == "inventory.low_stock_threshold")
+        .and_then(|s| s.value.parse::<i32>().ok())
+        .unwrap_or(10);
+
+    let low_stock_products = Products::find()
+        .filter(products::Column::IsActive.eq(true))
+        .filter(
+            Condition::any()
+                .add(
+                    Condition::all()
+                        .add(products::Column::MinStock.is_not_null())
+                        .add(
+                            Expr::col(products::Column::Stock)
+                                .lte(Expr::col(products::Column::MinStock)),
+                        ),
+                )
+                .add(
+                    Condition::all()
+                        .add(products::Column::MinStock.is_null())
+                        .add(products::Column::Stock.lte(global_threshold)),
+                ),
+        )
+        .order_by_asc(products::Column::Stock)
+        .all(db)
+        .await
+        .map_err(|_| DB_ERROR.to_string())?;
+
+    let result = low_stock_products
+        .into_iter()
+        .map(|p| {
+            let threshold = p.min_stock.unwrap_or(global_threshold);
+            LowStockProduct {
+                id: p.id,
+                name: p.name,
+                stock: Ord::max(p.stock, 0) as u32,
+                threshold: Ord::max(threshold, 0) as u32,
+            }
+        })
+        .collect();
+
+    Ok(result)
 }

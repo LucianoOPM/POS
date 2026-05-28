@@ -1,10 +1,18 @@
 import { useForm } from "@conform-to/react";
 import { type LoginData, loginSchema } from "@/validators/login";
-import { BarChart3, Loader2, Terminal, User, Lock, EyeOff, Eye, ShieldCheck } from "lucide-preact";
+import {
+  BarChart3,
+  Loader2,
+  Terminal,
+  User,
+  Lock,
+  EyeOff,
+  Eye,
+  ShieldCheck,
+} from "lucide-preact";
 import { getFormProps, getInputProps } from "@conform-to/react";
 import { useState } from "preact/hooks";
 import { parseWithZod } from "@conform-to/zod/v4";
-import { navigate } from "wouter/use-hash-location";
 import { useAuthStore } from "@/store/authStore";
 
 export default function Login() {
@@ -25,9 +33,7 @@ export default function Login() {
       if (satinized.status === "success") {
         try {
           await login(satinized.payload as LoginData);
-          navigate("/"); // Redirigir después del login exitoso
         } catch (error) {
-          // El error ya está manejado por el store
           console.error("Error al iniciar sesión:", error);
         }
       }

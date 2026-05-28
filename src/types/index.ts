@@ -12,6 +12,7 @@ export type {
   ProductListResponse,
   StockStatus,
   StockStatusType,
+  LowStockProduct,
 } from "./product";
 
 // Auth types

@@ -23,7 +23,9 @@ use printing::{
     configure_printer, get_print_jobs, get_printer_config, preview_receipt, print_receipt,
     PrintService, PrinterConfig,
 };
-use products::ProductHandlers::{create_product, delete_product, get_products, update_product};
+use products::ProductHandlers::{
+    check_low_stock, create_product, delete_product, get_products, update_product,
+};
 use reports::ReportsHandler::{
     get_category_report, get_dashboard_report, get_payment_method_report, get_product_report,
     get_refunds_report, get_sales_over_time_report,
@@ -76,6 +78,7 @@ pub async fn run() {
             delete_product,
             get_products,
             update_product,
+            check_low_stock,
             get_all_categories,
             get_category_by_id,
             create_category,
