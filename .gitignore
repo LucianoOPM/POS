@@ -26,5 +26,6 @@ dist-ssr
 .claude/*
 !.claude/settings.json
 !.claude/config.json
+.agents/*
 
 TODO.md
