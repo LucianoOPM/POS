@@ -171,7 +171,7 @@ export default function Sales() {
   }, [viewState, change, selectedPayment]);
 
   return (
-    <div className="flex flex-col h-full animate-in fade-in duration-300">
+    <div className="flex flex-col h-full">
       {/* Error toast */}
       {error && (
         <div className="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-in slide-in-from-right">

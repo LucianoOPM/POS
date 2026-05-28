@@ -43,7 +43,7 @@ export default function Index() {
     }`;
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden animate-in fade-in duration-300">
+    <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden">
       {/* Header */}
       <div className="px-6 pt-6 pb-0">
         <div className="flex items-center gap-3 mb-4">
