@@ -33,6 +33,7 @@ export default function ProductForm({ product, setShowProductModal, onSuccess }:
       category_id: product?.category_id || "",
       code: product?.code || "",
       stock: product?.stock || "",
+      min_stock: product?.min_stock ?? "",
       price: product?.price || "",
       cost: product?.cost || "",
       tax: product?.tax || "",
@@ -63,6 +64,8 @@ export default function ProductForm({ product, setShowProductModal, onSuccess }:
             category_id: formData.category_id || null,
             code: formData.code,
             stock: formData.stock,
+            min_stock: formData.min_stock,
+            clear_min_stock: formData.min_stock === undefined,
             price: formData.price,
             cost: formData.cost,
             tax: formData.tax,
@@ -75,6 +78,7 @@ export default function ProductForm({ product, setShowProductModal, onSuccess }:
             category_id: formData.category_id || null,
             code: formData.code,
             stock: formData.stock,
+            min_stock: formData.min_stock ?? null,
             price: formData.price,
             cost: formData.cost,
             tax: formData.tax,
@@ -225,7 +229,7 @@ export default function ProductForm({ product, setShowProductModal, onSuccess }:
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div className="space-y-1">
             <label className="text-xs font-bold text-gray-500 uppercase">Stock Inicial</label>
             <input
@@ -240,10 +244,23 @@ export default function ProductForm({ product, setShowProductModal, onSuccess }:
           </div>
           <div className="space-y-1">
             <label className="text-xs font-bold text-gray-500 uppercase">
+              Stock Mínimo
+              <span className="text-gray-400 font-normal ml-1 text-[10px]">Vacío = global</span>
+            </label>
+            <input
+              {...getInputProps(fields.min_stock, { type: "number" })}
+              className="w-full p-2 border border-gray-300 rounded focus:border-primary outline-none"
+              placeholder="Global"
+              min="0"
+            />
+            {fields.min_stock.errors && (
+              <p className="text-xs text-red-500 mt-1">{fields.min_stock.errors}</p>
+            )}
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-gray-500 uppercase">
               Impuesto (%)
-              <span className="text-gray-400 font-normal ml-1 text-[10px]">
-                Ej: 16 para IVA 16%
-              </span>
+              <span className="text-gray-400 font-normal ml-1 text-[10px]">Ej: 16%</span>
             </label>
             <input
               step="0.01"

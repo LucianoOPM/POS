@@ -214,7 +214,6 @@ function AccessDenied() {
 export default function AppRoutes() {
   const { isAuthenticated, isLoading, checkAuth, hasPermission, hasAnyPermission } = useAuthStore();
 
-  // Verificar autenticación al iniciar la app
   useEffect(() => {
     checkAuth();
   }, []);
@@ -232,7 +231,8 @@ export default function AppRoutes() {
   }
 
   return (
-    <Router hook={useHashLocation}>
+    <>
+      <Router hook={useHashLocation}>
       <Switch>
         {routes.map((route) => (
           <Route key={route.path} path={route.path}>
@@ -287,5 +287,6 @@ export default function AppRoutes() {
         </Route>
       </Switch>
     </Router>
+    </>
   );
 }

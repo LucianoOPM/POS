@@ -1,5 +1,5 @@
 import { useState, useMemo } from "preact/hooks";
-import useSWR from "swr";
+import useSWR, { mutate as globalMutate } from "swr";
 import { productActions } from "@/actions/products";
 import { categoriesActions } from "@/actions/categories";
 import { useAuthStore } from "@/store/authStore";
@@ -87,9 +87,10 @@ export default function Index() {
     try {
       await productActions.updateProduct(id, {
         stock: newStock,
-        updated_by: session.username,
+        updated_by: session.user_id,
       });
       mutate();
+      globalMutate("low_stock");
     } catch (error) {
       console.error("Error al actualizar stock:", error);
     }
@@ -101,6 +102,7 @@ export default function Index() {
     try {
       await productActions.deleteProduct(id);
       mutate();
+      globalMutate("low_stock");
     } catch (error) {
       console.error("Error al eliminar producto:", error);
     }
@@ -166,7 +168,10 @@ export default function Index() {
               key={editingProduct?.id || "new"}
               product={editingProduct || undefined}
               setShowProductModal={handleCloseModal}
-              onSuccess={mutate}
+              onSuccess={() => {
+                mutate();
+                globalMutate("low_stock");
+              }}
             />
           </div>
         </div>
