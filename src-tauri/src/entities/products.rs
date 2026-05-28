@@ -24,6 +24,7 @@ pub struct Model {
     pub updated_at: DateTimeWithTimeZone,
     pub created_by: String,
     pub updated_by: String,
+    pub min_stock: Option<i32>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
