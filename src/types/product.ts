@@ -10,6 +10,7 @@ export interface Product {
   category_name: string | null;
   code: string;
   stock: number;
+  min_stock: number | null;
   is_active: boolean;
   price: string; // Decimal from DB comes as string
   cost: string; // Decimal from DB comes as string
@@ -36,6 +37,7 @@ export interface NewProduct {
   category_id: number | null;
   code: string;
   stock: number;
+  min_stock: number | null;
   price: number;
   cost: number;
   tax: number;
@@ -48,6 +50,8 @@ export interface UpdateProduct {
   category_id?: number | null;
   code?: string;
   stock?: number;
+  min_stock?: number;
+  clear_min_stock?: boolean;
   is_active?: boolean;
   price?: number;
   cost?: number;
@@ -63,3 +67,11 @@ export interface StockStatus {
 
 /** Estado del stock (usado en filtros) */
 export type StockStatusType = "optimal" | "low" | "out";
+
+/** Producto con stock bajo retornado por check_low_stock */
+export interface LowStockProduct {
+  id: number;
+  name: string;
+  stock: number;
+  threshold: number;
+}
