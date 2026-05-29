@@ -1,6 +1,7 @@
 import { Plus, Search } from "lucide-preact";
 import { RefObject } from "preact";
 import { Dispatch, StateUpdater } from "preact/hooks";
+import { Input } from "@/components/ui/input";
 
 interface Props {
   handleSearch: (e: Event) => void;
@@ -21,16 +22,16 @@ export default function SearchForm({
     <div className="p-4 bg-white border-b border-gray-200 flex gap-4 items-center">
       <form onSubmit={handleSearch} className="flex-1 relative">
         <Search
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 z-10"
           size={20}
         />
-        <input
+        <Input
           ref={searchInputRef}
           type="text"
           value={searchQuery}
-          onChange={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
+          onChange={(e: Event) => setSearchQuery((e.target as HTMLInputElement).value)}
           placeholder="Buscar producto (F3)..."
-          className="w-full pl-12 pr-4 py-3 bg-gray-100 border-2 border-transparent focus:bg-white focus:border-primary-500 rounded-lg text-lg outline-none transition-all placeholder:text-gray-400 text-gray-800"
+          className="w-full pl-12 pr-4 py-3 h-auto bg-gray-100 border-2 border-transparent focus-visible:bg-white focus-visible:border-primary-500 focus-visible:ring-0 rounded-lg text-lg placeholder:text-gray-400 text-gray-800"
           autoComplete="off"
         />
         {lastScanned && (

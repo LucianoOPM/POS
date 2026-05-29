@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+
 interface Props {
   categories: {
     id: string;
@@ -6,21 +8,23 @@ interface Props {
   setActiveCategory: (id: string) => void;
   activeCategory: string;
 }
+
 export default function CategoriesTags({ categories, setActiveCategory, activeCategory }: Props) {
   return (
     <div className="px-4 py-3 bg-white border-b border-gray-200 flex gap-2 overflow-x-auto no-scrollbar shadow-sm z-10">
       {categories.map((cat) => (
-        <button
+        <Button
           key={cat.id}
           onClick={() => setActiveCategory(cat.id)}
-          className={`px-4 py-1.5 rounded-full font-medium text-sm whitespace-nowrap transition-colors border ${
+          variant={activeCategory === cat.id ? "default" : "outline"}
+          className={`rounded-full h-auto py-1.5 px-4 whitespace-nowrap text-sm font-medium ${
             activeCategory === cat.id
-              ? "bg-secondary-500 text-white border-secondary-500 shadow-md"
-              : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+              ? "bg-secondary-500 text-white border-secondary-500 hover:bg-secondary-600 shadow-md"
+              : "text-gray-600 border-gray-200"
           }`}
         >
           {cat.name}
-        </button>
+        </Button>
       ))}
     </div>
   );
