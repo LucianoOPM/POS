@@ -13,6 +13,7 @@ use crate::entities::{
     sale_details, sale_payments, sales,
 };
 use crate::sessions::require_permission;
+use crate::shifts::repository::find_open_shift;
 use crate::AppState;
 
 const DB_ERROR: &str = "Error en la base de datos";
@@ -109,7 +110,12 @@ pub async fn create_sale(
     let session = require_permission(&state, "sales.create")?;
     let db = &state.database;
 
-    // 2. Iniciar transacción
+    // 2. Obtener turno activo y retener su id para asociarlo a la venta
+    let open_shift = find_open_shift(db)
+        .await?
+        .ok_or_else(|| "No hay un turno activo. Debe abrir un turno antes de realizar operaciones.".to_string())?;
+
+    // 3. Iniciar transacción
     let txn = db
         .begin()
         .await
@@ -164,6 +170,7 @@ pub async fn create_sale(
         subtotal: Set(request.subtotal),
         total: Set(request.total),
         status: Set(true),
+        shift_id: Set(Some(open_shift.id)),
         created_by: Set(session.user_id.clone()),
         updated_by: Set(session.user_id.clone()),
         ..Default::default()

@@ -2,6 +2,7 @@ import {
   Archive,
   BanknoteArrowUp,
   BarChart3,
+  History,
   Package,
   Printer,
   Settings,
@@ -27,6 +28,12 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: ShoppingCart,
     label: "Ventas",
     permission: PERMISSIONS.SALES_CREATE,
+  },
+  {
+    id: "shifts",
+    icon: History,
+    label: "Turnos",
+    permission: PERMISSIONS.SHIFTS_VIEW,
   },
   {
     id: "refunds",

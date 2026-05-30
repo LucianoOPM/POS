@@ -12,6 +12,7 @@ mod reports;
 mod sales;
 mod sessions;
 mod settings;
+mod shifts;
 mod inventory;
 mod stock_movements;
 mod users;
@@ -40,6 +41,7 @@ use refunds::RefundsHandler::{
     create_refund, delete_refund, get_recent_sales_for_refund, get_refund_by_id, get_refunds,
     get_sale_for_refund,
 };
+use shifts::ShiftsHandler::{complete_shift_closure, get_current_shift, get_shift_by_id, get_shifts, open_shift, start_shift_closure, void_shift};
 use stock_movements::StockMovementsHandler::{
     create_stock_movement, get_product_movements, get_stock_movements,
 };
@@ -121,6 +123,14 @@ pub async fn run() {
             update_settings_batch,
             test_erp_connection,
             trigger_erp_sync,
+            // Shifts
+            open_shift,
+            get_current_shift,
+            get_shifts,
+            get_shift_by_id,
+            start_shift_closure,
+            complete_shift_closure,
+            void_shift,
             // Stock Movements
             create_stock_movement,
             get_stock_movements,

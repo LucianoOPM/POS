@@ -45,6 +45,12 @@ export const PERMISSIONS = {
   // Configuracion
   SETTINGS_VIEW: "settings.view",
   SETTINGS_EDIT: "settings.edit",
+
+  // Turnos
+  SHIFTS_OPEN: "shifts.open",
+  SHIFTS_CLOSE: "shifts.close",
+  SHIFTS_VIEW: "shifts.view",
+  SHIFTS_VOID: "shifts.void",
 } as const;
 
 export type PermissionCode = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

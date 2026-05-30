@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { AlertTriangle } from "lucide-preact";
 import { useAuthStore } from "@/store/authStore";
 import { useLowStock } from "@/hooks/useLowStock";
+import ShiftStatusIndicator from "@/components/ShiftStatusIndicator";
 
 const PAGE_TITLES: Record<string, string> = {
   "/": "Punto de Venta",
@@ -75,6 +76,9 @@ export default function Navbar() {
           ></span>
           {navigator.onLine ? "ONLINE" : "OFFLINE"}
         </div>
+
+        {/* Estado del turno */}
+        <ShiftStatusIndicator />
 
         {/* Badge de stock bajo */}
         {lowStockCount > 0 && (

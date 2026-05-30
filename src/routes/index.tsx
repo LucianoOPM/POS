@@ -3,6 +3,7 @@ import { useHashLocation } from "wouter/use-hash-location";
 import { JSX } from "preact";
 import { useEffect } from "preact/hooks";
 import { useAuthStore } from "@/store/authStore";
+import { useCurrentShift } from "@/hooks/useCurrentShift";
 import { PERMISSIONS } from "@/types/permissions";
 
 // Layouts
@@ -20,6 +21,7 @@ import Refunds from "@/pages/refunds/Index";
 import RefundCreate from "@/pages/refunds/Create";
 import Settings from "@/pages/settings/Index";
 import Printing from "@/pages/printing/Index";
+import ShiftsHistory from "@/pages/shifts/Index";
 
 // Report Views
 import DashboardReport from "@/pages/reports/views/DashboardReport";
@@ -38,6 +40,7 @@ interface RouteConfig {
   title?: string;
   requiredPermission?: string;
   requiredAnyPermission?: string[];
+  requireActiveShift?: boolean;
 }
 
 /**
@@ -58,6 +61,7 @@ export const routes: RouteConfig[] = [
     layout: "main",
     requireAuth: true,
     requiredPermission: PERMISSIONS.SALES_CREATE,
+    requireActiveShift: true,
     title: "Ventas",
   },
   {
@@ -90,6 +94,7 @@ export const routes: RouteConfig[] = [
     layout: "main",
     requireAuth: true,
     requiredPermission: PERMISSIONS.SALES_REFUND,
+    requireActiveShift: true,
     title: "Reembolsos",
   },
   {
@@ -98,6 +103,7 @@ export const routes: RouteConfig[] = [
     layout: "main",
     requireAuth: true,
     requiredPermission: PERMISSIONS.SALES_REFUND,
+    requireActiveShift: true,
     title: "Nuevo Reembolso",
   },
   {
@@ -176,6 +182,14 @@ export const routes: RouteConfig[] = [
     requiredPermission: PERMISSIONS.SETTINGS_VIEW,
     title: "Impresión",
   },
+  {
+    path: "/shifts",
+    component: ShiftsHistory,
+    layout: "main",
+    requireAuth: true,
+    requiredPermission: PERMISSIONS.SHIFTS_VIEW,
+    title: "Turnos",
+  },
 ];
 
 /**
@@ -209,6 +223,7 @@ const mainRoutes = routes.filter((r) => r.layout === "main");
  */
 export default function AppRoutes() {
   const { isAuthenticated, isLoading, checkAuth, hasPermission, hasAnyPermission } = useAuthStore();
+  const { shift, isLoading: isShiftLoading } = useCurrentShift();
 
   useEffect(() => {
     checkAuth();
@@ -261,6 +276,18 @@ export default function AppRoutes() {
                           !hasAnyPermission(route.requiredAnyPermission)
                         ) {
                           return <AccessDenied />;
+                        }
+                        if (route.requireActiveShift) {
+                          if (isShiftLoading) {
+                            return (
+                              <div className="flex items-center justify-center h-full">
+                                <div className="w-8 h-8 border-4 border-slate-900 border-t-transparent rounded-full animate-spin" />
+                              </div>
+                            );
+                          }
+                          if (!shift || shift.status !== "OPEN") {
+                            return <Redirect to="/shifts" />;
+                          }
                         }
                         const PageComponent = route.component;
                         return <PageComponent />;

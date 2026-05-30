@@ -12,6 +12,7 @@ use crate::entities::{
     prelude::{Products, RefundDetails, Refunds, SaleDetails, Sales, Users},
 };
 use crate::sessions::require_permission;
+use crate::shifts::repository::find_open_shift;
 use crate::AppState;
 use sea_orm::prelude::Decimal;
 
@@ -204,6 +205,11 @@ pub async fn create_refund(
     let session = require_permission(&state, PERMISSION_SALES_REFUND)?;
     let db = &state.database;
 
+    // Verificar turno activo y capturar su id para asociarlo al reembolso
+    let open_shift = find_open_shift(db)
+        .await?
+        .ok_or_else(|| "No hay un turno activo. Debe abrir un turno antes de realizar operaciones.".to_string())?;
+
     // Validate sale exists and is active
     let sale = Sales::find_by_id(&refund_data.sale_id)
         .one(db)
@@ -263,7 +269,8 @@ pub async fn create_refund(
     }
 
     // Create refund record
-    let refund_model = refund_data.to_active_model(total_amount, session.user_id.clone());
+    let mut refund_model = refund_data.to_active_model(total_amount, session.user_id.clone());
+    refund_model.shift_id = Set(Some(open_shift.id));
 
     let inserted_refund = refund_model
         .insert(&txn)
