@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/authStore";
 const ROUTE_MAP: Record<string, string> = {
   pos: "/",
   refunds: "/refunds",
+  products: "/products",
   inventory: "/inventory",
   clients: "/clients",
   users: "/users",
