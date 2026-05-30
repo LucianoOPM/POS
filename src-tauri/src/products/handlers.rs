@@ -1,6 +1,6 @@
 use sea_orm::{
     ActiveModelTrait, ActiveValue, ColumnTrait, Condition, EntityTrait, PaginatorTrait,
-    QueryFilter, QueryOrder, QuerySelect,
+    QueryFilter, QueryOrder, QuerySelect, TransactionTrait,
 };
 use sea_orm::sea_query::Expr;
 use sea_orm::ExprTrait;
@@ -59,10 +59,11 @@ pub async fn create_product(
     state: tauri::State<'_, AppState>,
     product_data: NewProduct,
 ) -> Result<Product, String> {
-    require_permission(&state, "products.create")?;
+    let session = require_permission(&state, "products.create")?;
     let db = &state.database;
+    let initial_stock = product_data.stock;
 
-    // Verifica unicidad del código de barras
+    // Verifica unicidad del código de barras (fuera de transacción, solo lectura)
     let product_barcode = Products::find()
         .filter(products::Column::Code.eq(&product_data.code))
         .one(db)
@@ -72,11 +73,36 @@ pub async fn create_product(
     if product_barcode.is_some() {
         return Err("El código de barras registrado ya existe".to_string());
     }
-    // Inserta y retorna el modelo insertado directamente
+
+    let txn = db
+        .begin()
+        .await
+        .map_err(|_| "Error al iniciar transacción".to_string())?;
+
     let inserted: products::Model = Products::insert(products::ActiveModel::from(product_data))
-        .exec_with_returning(db)
+        .exec_with_returning(&txn)
         .await
         .map_err(|e| format!("Error al insertar el producto: {:?}", e))?;
+
+    // Si el producto nace con stock, registrar el movimiento de entrada inicial
+    if initial_stock > 0 {
+        crate::inventory::service::record_stock_change(
+            &txn,
+            inserted.id,
+            "entry",
+            initial_stock,
+            0,
+            initial_stock,
+            "purchase",
+            None,
+            &session.user_id,
+        )
+        .await?;
+    }
+
+    txn.commit()
+        .await
+        .map_err(|_| "Error al confirmar transacción".to_string())?;
 
     Ok(Product::from(inserted))
 }

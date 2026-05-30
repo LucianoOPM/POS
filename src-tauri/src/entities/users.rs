@@ -32,6 +32,8 @@ pub enum Relation {
         on_delete = "Restrict"
     )]
     Profiles,
+    #[sea_orm(has_many = "super::stock_movements::Entity")]
+    StockMovements,
     #[sea_orm(has_many = "super::ticket_prints::Entity")]
     TicketPrints,
     #[sea_orm(
@@ -55,6 +57,12 @@ pub enum Relation {
 impl Related<super::profiles::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Profiles.def()
+    }
+}
+
+impl Related<super::stock_movements::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::StockMovements.def()
     }
 }
 

@@ -95,3 +95,13 @@ export type {
 
 // Printing types
 export type { PrintJob, PrinterConfig } from "./printing";
+
+// Stock movement types
+export type {
+  MovementType,
+  MovementReason,
+  StockMovement,
+  NewStockMovement,
+  StockMovementFilter,
+  StockMovementListResponse,
+} from "./stock_movement";

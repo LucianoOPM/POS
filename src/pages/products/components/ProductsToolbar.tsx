@@ -1,8 +1,9 @@
-import { Filter, Search } from "lucide-preact";
+import { Filter, Plus, Search } from "lucide-preact";
 import { JSX } from "preact/jsx-runtime";
 import { useState, useRef } from "preact/hooks";
-import FilterDropdown from "./FilterDropdown";
-import { type InventoryFilters, type Category } from "@/types";
+import ProductFilterDropdown, { type ProductsFilters } from "./ProductFilterDropdown";
+import { type Category, PERMISSIONS } from "@/types";
+import { PermissionGate } from "@/components/PermissionGate";
 
 const PAGE_SIZE_OPTIONS = [
   { value: 5, label: "5" },
@@ -13,32 +14,35 @@ const PAGE_SIZE_OPTIONS = [
   { value: 9999, label: "Todos" },
 ];
 
-interface InventoryToolbarProps {
+interface ProductsToolbarProps {
   search: string;
   onSearchChange: (value: string) => void;
-  filters: InventoryFilters;
-  onFiltersChange: (filters: InventoryFilters) => void;
+  onCreateNew: () => void;
+  filters: ProductsFilters;
+  onFiltersChange: (filters: ProductsFilters) => void;
   availableCategories: Category[];
   pageSize: number;
   onPageSizeChange: (size: number) => void;
 }
 
-export default function InventoryToolbar({
+export default function ProductsToolbar({
   search,
   onSearchChange,
+  onCreateNew,
   filters,
   onFiltersChange,
   availableCategories,
   pageSize,
   onPageSizeChange,
-}: InventoryToolbarProps) {
+}: ProductsToolbarProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterButtonRef = useRef<HTMLButtonElement>(null);
 
-  const activeFiltersCount = filters.categories.length + filters.stockStatus.length;
+  const activeFiltersCount =
+    filters.categories.length + (filters.activeStatus !== "all" ? 1 : 0);
 
   return (
-    <div className="px-6 pt-4 pb-4 flex justify-between items-center">
+    <div className="px-6 py-4 flex justify-between items-center">
       <div className="flex items-center gap-3">
         <div className="relative w-96">
           <Search
@@ -51,17 +55,17 @@ export default function InventoryToolbar({
             onChange={(e: JSX.TargetedEvent<HTMLInputElement, Event>) =>
               onSearchChange(e.currentTarget.value)
             }
-            placeholder="Buscar producto en inventario..."
+            placeholder="Buscar por nombre o código..."
             className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <label htmlFor="invPageSize" className="text-sm text-gray-600 whitespace-nowrap">
+          <label htmlFor="productPageSize" className="text-sm text-gray-600 whitespace-nowrap">
             Mostrar:
           </label>
           <select
-            id="invPageSize"
+            id="productPageSize"
             value={pageSize}
             onChange={(e: JSX.TargetedEvent<HTMLSelectElement, Event>) =>
               onPageSizeChange(Number(e.currentTarget.value))
@@ -95,7 +99,7 @@ export default function InventoryToolbar({
           )}
         </button>
 
-        <FilterDropdown
+        <ProductFilterDropdown
           isOpen={isFilterOpen}
           onClose={() => setIsFilterOpen(false)}
           filters={filters}
@@ -103,6 +107,15 @@ export default function InventoryToolbar({
           availableCategories={availableCategories}
           buttonRef={filterButtonRef}
         />
+
+        <PermissionGate permission={PERMISSIONS.PRODUCTS_CREATE}>
+          <button
+            onClick={onCreateNew}
+            className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 font-medium text-sm shadow-sm"
+          >
+            <Plus size={18} /> Nuevo Producto
+          </button>
+        </PermissionGate>
       </div>
     </div>
   );

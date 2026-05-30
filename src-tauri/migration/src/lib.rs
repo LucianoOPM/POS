@@ -19,6 +19,7 @@ mod m20260114_000001_seed_settings;
 mod m20260114_000002_seed_settings_permissions;
 mod m20260525_000001_ticket_prints_table;
 mod m20260526_000001_add_min_stock_to_products;
+mod m20260528_000001_stock_movements_table;
 pub struct Migrator;
 
 #[async_trait::async_trait]
@@ -44,6 +45,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20260114_000002_seed_settings_permissions::Migration),
             Box::new(m20260525_000001_ticket_prints_table::Migration),
             Box::new(m20260526_000001_add_min_stock_to_products::Migration),
+            Box::new(m20260528_000001_stock_movements_table::Migration),
         ]
     }
 }

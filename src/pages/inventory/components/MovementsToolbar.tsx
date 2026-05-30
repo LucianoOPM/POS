@@ -1,46 +1,57 @@
-import { Filter, Search } from "lucide-preact";
+import { Filter, Plus, Search } from "lucide-preact";
 import { JSX } from "preact/jsx-runtime";
-import { useState, useRef } from "preact/hooks";
-import FilterDropdown from "./FilterDropdown";
-import { type InventoryFilters, type Category } from "@/types";
+import { useRef, useState } from "preact/hooks";
+import MovementFilters from "./MovementFilters";
+import { PERMISSIONS } from "@/types";
+import { PermissionGate } from "@/components/PermissionGate";
 
 const PAGE_SIZE_OPTIONS = [
-  { value: 5, label: "5" },
   { value: 10, label: "10" },
   { value: 25, label: "25" },
   { value: 50, label: "50" },
   { value: 100, label: "100" },
-  { value: 9999, label: "Todos" },
 ];
 
-interface InventoryToolbarProps {
+interface MovementFiltersState {
+  movement_type: string;
+  product_id: number | undefined;
+  date_from: string;
+  date_to: string;
+}
+
+interface MovementsToolbarProps {
   search: string;
   onSearchChange: (value: string) => void;
-  filters: InventoryFilters;
-  onFiltersChange: (filters: InventoryFilters) => void;
-  availableCategories: Category[];
+  onCreateNew: () => void;
+  filters: MovementFiltersState;
+  onFiltersChange: (filters: MovementFiltersState) => void;
   pageSize: number;
   onPageSizeChange: (size: number) => void;
 }
 
-export default function InventoryToolbar({
+export default function MovementsToolbar({
   search,
   onSearchChange,
+  onCreateNew,
   filters,
   onFiltersChange,
-  availableCategories,
   pageSize,
   onPageSizeChange,
-}: InventoryToolbarProps) {
+}: MovementsToolbarProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterButtonRef = useRef<HTMLButtonElement>(null);
 
-  const activeFiltersCount = filters.categories.length + filters.stockStatus.length;
+  const activeFiltersCount = [
+    filters.movement_type,
+    filters.product_id,
+    filters.date_from,
+    filters.date_to,
+  ].filter(Boolean).length;
 
   return (
     <div className="px-6 pt-4 pb-4 flex justify-between items-center">
       <div className="flex items-center gap-3">
-        <div className="relative w-96">
+        <div className="relative w-80">
           <Search
             className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
             size={18}
@@ -51,26 +62,23 @@ export default function InventoryToolbar({
             onChange={(e: JSX.TargetedEvent<HTMLInputElement, Event>) =>
               onSearchChange(e.currentTarget.value)
             }
-            placeholder="Buscar producto en inventario..."
+            placeholder="Buscar por tipo o motivo..."
             className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <label htmlFor="invPageSize" className="text-sm text-gray-600 whitespace-nowrap">
-            Mostrar:
-          </label>
+          <label className="text-sm text-gray-600 whitespace-nowrap">Mostrar:</label>
           <select
-            id="invPageSize"
             value={pageSize}
             onChange={(e: JSX.TargetedEvent<HTMLSelectElement, Event>) =>
               onPageSizeChange(Number(e.currentTarget.value))
             }
-            className="px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm font-medium text-gray-700 cursor-pointer"
+            className="px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary text-sm font-medium text-gray-700 cursor-pointer"
           >
-            {PAGE_SIZE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
+            {PAGE_SIZE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
               </option>
             ))}
           </select>
@@ -95,14 +103,22 @@ export default function InventoryToolbar({
           )}
         </button>
 
-        <FilterDropdown
+        <MovementFilters
           isOpen={isFilterOpen}
           onClose={() => setIsFilterOpen(false)}
           filters={filters}
           onFiltersChange={onFiltersChange}
-          availableCategories={availableCategories}
           buttonRef={filterButtonRef}
         />
+
+        <PermissionGate permission={PERMISSIONS.PRODUCTS_CREATE}>
+          <button
+            onClick={onCreateNew}
+            className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 font-medium text-sm shadow-sm"
+          >
+            <Plus size={18} /> Registrar Movimiento
+          </button>
+        </PermissionGate>
       </div>
     </div>
   );

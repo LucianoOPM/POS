@@ -92,7 +92,6 @@ pub struct UpdateProduct {
     pub name: Option<String>,
     pub category_id: Option<i32>,
     pub code: Option<String>,
-    pub stock: Option<i32>,
     pub min_stock: Option<i32>,
     pub clear_min_stock: Option<bool>,
     pub is_active: Option<bool>,
@@ -114,9 +113,6 @@ impl From<UpdateProduct> for products::ActiveModel {
         }
         if let Some(code) = value.code {
             active_model.code = Set(code);
-        }
-        if let Some(stock) = value.stock {
-            active_model.stock = Set(stock);
         }
         if value.clear_min_stock == Some(true) {
             active_model.min_stock = Set(None);

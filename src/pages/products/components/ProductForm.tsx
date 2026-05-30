@@ -58,7 +58,6 @@ export default function ProductForm({ product, setShowProductModal, onSuccess }:
 
       try {
         if (product) {
-          // Actualizar producto existente (stock se gestiona exclusivamente desde Inventario)
           await productActions.updateProduct(product.id, {
             name: formData.name,
             category_id: formData.category_id || null,
@@ -71,7 +70,6 @@ export default function ProductForm({ product, setShowProductModal, onSuccess }:
             updated_by: session?.user_id || "",
           });
         } else {
-          // Crear nuevo producto con stock inicial (registra movimiento automáticamente)
           await productActions.createProduct({
             name: formData.name,
             category_id: formData.category_id || null,
@@ -85,10 +83,7 @@ export default function ProductForm({ product, setShowProductModal, onSuccess }:
           });
         }
 
-        // Notificar éxito para revalidar la lista
         onSuccess?.();
-
-        // Cerrar modal
         form.reset();
         setShowProductModal(false);
       } catch (error) {
@@ -113,7 +108,6 @@ export default function ProductForm({ product, setShowProductModal, onSuccess }:
 
   return (
     <>
-      {/* Header del modal */}
       <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
         <h3 className="font-bold text-lg text-gray-800">
           {product ? "Editar Producto" : "Nuevo Producto"}
@@ -127,7 +121,6 @@ export default function ProductForm({ product, setShowProductModal, onSuccess }:
         </button>
       </div>
 
-      {/* Formulario */}
       <form
         {...formProps}
         className="p-6 space-y-4 overflow-y-auto"
@@ -136,7 +129,6 @@ export default function ProductForm({ product, setShowProductModal, onSuccess }:
           formProps.onSubmit?.(e as any);
         }}
       >
-        {/* Error general del formulario */}
         {saveError && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-600">{saveError}</p>
@@ -178,7 +170,6 @@ export default function ProductForm({ product, setShowProductModal, onSuccess }:
           <div className="space-y-1">
             <label className="text-xs font-bold text-gray-500 uppercase">Categoría</label>
             <select
-              // defaultValue={product?.category || ""}
               {...(getSelectProps(fields.category_id) as any)}
               className="w-full p-2 border border-gray-300 rounded focus:border-primary outline-none bg-white disabled:bg-gray-100"
               disabled={isLoading}

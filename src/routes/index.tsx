@@ -12,6 +12,7 @@ import AuthLayout from "@/layouts/AuthLayout";
 // Pages
 import Login from "@/pages/Login";
 import Sales from "@/pages/sales/Index";
+import Products from "@/pages/products/Index";
 import Inventory from "@/pages/inventory/Index";
 import Reports from "@/pages/reports/Index";
 import Users from "@/pages/users/Index";
@@ -58,6 +59,14 @@ export const routes: RouteConfig[] = [
     requireAuth: true,
     requiredPermission: PERMISSIONS.SALES_CREATE,
     title: "Ventas",
+  },
+  {
+    path: "/products",
+    component: Products,
+    layout: "main",
+    requireAuth: true,
+    requiredPermission: PERMISSIONS.PRODUCTS_VIEW,
+    title: "Productos",
   },
   {
     path: "/inventory",

@@ -8,7 +8,7 @@ use super::structs::{
     RefundWithDetails, RecentSale, SaleForRefund, SaleItemForRefund,
 };
 use crate::entities::{
-    products, refund_details, refunds, sale_details,
+    refund_details, refunds, sale_details,
     prelude::{Products, RefundDetails, Refunds, SaleDetails, Sales, Users},
 };
 use crate::sessions::require_permission;
@@ -286,21 +286,28 @@ pub async fn create_refund(
             .await
             .map_err(|e| format!("Error al registrar detalle de reembolso: {:?}", e))?;
 
-        // Restore product stock
+        // Restaurar stock mediante el servicio centralizado de inventario
         let product = Products::find_by_id(item.product_id)
             .one(&txn)
             .await
             .map_err(|_| "Error al actualizar stock".to_string())?
             .ok_or("Producto no encontrado al actualizar stock".to_string())?;
 
-        let mut product_active: products::ActiveModel = product.into();
-        product_active.stock = Set(product_active.stock.unwrap() + item.quantity);
-        product_active.updated_by = Set(session.user_id.clone());
+        let previous_stock = product.stock;
+        let new_stock = previous_stock + item.quantity;
 
-        product_active
-            .update(&txn)
-            .await
-            .map_err(|e| format!("Error al restaurar inventario: {:?}", e))?;
+        crate::inventory::service::record_stock_change(
+            &txn,
+            item.product_id,
+            "refund",
+            item.quantity,
+            previous_stock,
+            new_stock,
+            "customer_refund",
+            None,
+            &session.user_id,
+        )
+        .await?;
     }
 
     // Commit transaction
@@ -363,14 +370,21 @@ pub async fn delete_refund(
             ));
         }
 
-        let mut product_active: products::ActiveModel = product.into();
-        product_active.stock = Set(product_active.stock.unwrap() - detail.quantity);
-        product_active.updated_by = Set(session.user_id.clone());
+        let previous_stock = product.stock;
+        let new_stock = previous_stock - detail.quantity;
 
-        product_active
-            .update(&txn)
-            .await
-            .map_err(|e| format!("Error al revertir inventario: {:?}", e))?;
+        crate::inventory::service::record_stock_change(
+            &txn,
+            detail.product_id,
+            "exit",
+            detail.quantity,
+            previous_stock,
+            new_stock,
+            "sale_adjustment",
+            None,
+            &session.user_id,
+        )
+        .await?;
     }
 
     // Delete refund details (cascade should handle this, but being explicit)

@@ -1,4 +1,5 @@
 import {
+  Archive,
   BanknoteArrowUp,
   BarChart3,
   Package,
@@ -40,9 +41,15 @@ export const MENU_ITEMS: MenuItem[] = [
     permission: PERMISSIONS.USERS_VIEW,
   },
   {
-    id: "inventory",
+    id: "products",
     icon: Package,
     label: "Productos",
+    permission: PERMISSIONS.PRODUCTS_VIEW,
+  },
+  {
+    id: "inventory",
+    icon: Archive,
+    label: "Inventario",
     permission: PERMISSIONS.PRODUCTS_VIEW,
   },
   {
