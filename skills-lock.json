@@ -13,6 +13,12 @@
       "skillPath": "skills/database-migrations/SKILL.md",
       "computedHash": "9ad960c29effe20f801f6589c580b5c81702fbb6fa835e3a6d9eb78ff856981c"
     },
+    "skill-creator": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/skill-creator/SKILL.md",
+      "computedHash": "7e3c9cd74e9e2b4828527a857170e86310f2dab5ea8030a9043df2c7e6c88857"
+    },
     "ui-ux-pro-max": {
       "source": "nextlevelbuilder/ui-ux-pro-max-skill",
       "sourceType": "github",
