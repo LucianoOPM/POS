@@ -12,6 +12,8 @@ mod reports;
 mod sales;
 mod sessions;
 mod settings;
+mod inventory;
+mod stock_movements;
 mod users;
 mod utils;
 
@@ -37,6 +39,9 @@ use users::UsersHandler::{create_user, get_profiles, get_users, toggle_user_stat
 use refunds::RefundsHandler::{
     create_refund, delete_refund, get_recent_sales_for_refund, get_refund_by_id, get_refunds,
     get_sale_for_refund,
+};
+use stock_movements::StockMovementsHandler::{
+    create_stock_movement, get_product_movements, get_stock_movements,
 };
 use settings::SettingsHandler::{
     get_setting, get_settings, get_settings_by_category, test_erp_connection, trigger_erp_sync,
@@ -116,6 +121,10 @@ pub async fn run() {
             update_settings_batch,
             test_erp_connection,
             trigger_erp_sync,
+            // Stock Movements
+            create_stock_movement,
+            get_stock_movements,
+            get_product_movements,
             // Printing
             print_receipt,
             preview_receipt,
