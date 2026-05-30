@@ -105,3 +105,6 @@ export type {
   StockMovementFilter,
   StockMovementListResponse,
 } from "./stock_movement";
+
+// Shift types
+export type { Shift, OpenShiftRequest } from "./shift";
