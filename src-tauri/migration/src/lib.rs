@@ -20,6 +20,13 @@ mod m20260114_000002_seed_settings_permissions;
 mod m20260525_000001_ticket_prints_table;
 mod m20260526_000001_add_min_stock_to_products;
 mod m20260528_000001_stock_movements_table;
+mod m20260530_000001_shifts_table;
+mod m20260530_000002_seed_shifts_permissions;
+mod m20260530_000003_add_shift_id_to_sales;
+mod m20260530_184433_add_shift_id_to_refunds;
+mod m20260530_142503_add_void_columns_to_shifts;
+mod m20260530_142557_seed_void_shift_permission;
+
 pub struct Migrator;
 
 #[async_trait::async_trait]
@@ -46,6 +53,12 @@ impl MigratorTrait for Migrator {
             Box::new(m20260525_000001_ticket_prints_table::Migration),
             Box::new(m20260526_000001_add_min_stock_to_products::Migration),
             Box::new(m20260528_000001_stock_movements_table::Migration),
+            Box::new(m20260530_000001_shifts_table::Migration),
+            Box::new(m20260530_000002_seed_shifts_permissions::Migration),
+            Box::new(m20260530_000003_add_shift_id_to_sales::Migration),
+            Box::new(m20260530_184433_add_shift_id_to_refunds::Migration),
+            Box::new(m20260530_142503_add_void_columns_to_shifts::Migration),
+            Box::new(m20260530_142557_seed_void_shift_permission::Migration),
         ]
     }
 }
