@@ -16,6 +16,7 @@ pub struct Model {
     pub updated_at: DateTimeWithTimeZone,
     pub created_by: String,
     pub updated_by: String,
+    pub shift_id: Option<i32>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -30,6 +31,14 @@ pub enum Relation {
         on_delete = "Restrict"
     )]
     Sales,
+    #[sea_orm(
+        belongs_to = "super::shifts::Entity",
+        from = "Column::ShiftId",
+        to = "super::shifts::Column::Id",
+        on_update = "Cascade",
+        on_delete = "Restrict"
+    )]
+    Shifts,
     #[sea_orm(
         belongs_to = "super::users::Entity",
         from = "Column::CreatedBy",
@@ -57,6 +66,12 @@ impl Related<super::refund_details::Entity> for Entity {
 impl Related<super::sales::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Sales.def()
+    }
+}
+
+impl Related<super::shifts::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Shifts.def()
     }
 }
 

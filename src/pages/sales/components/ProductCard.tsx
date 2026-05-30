@@ -1,4 +1,5 @@
 import type { SalesProduct } from "@/types";
+import { Badge } from "@/components/ui/badge";
 
 interface ProductCardProps {
   product: SalesProduct;
@@ -18,9 +19,9 @@ export default function ProductCard({ product, onAdd }: ProductCardProps) {
     >
       {product.stock <= 0 && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100/50 z-10 backdrop-blur-[1px]">
-          <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded transform -rotate-12">
+          <Badge variant="destructive" className="-rotate-12 text-xs">
             AGOTADO
-          </span>
+          </Badge>
         </div>
       )}
       <div className="w-full">
@@ -36,7 +37,12 @@ export default function ProductCard({ product, onAdd }: ProductCardProps) {
         <div className="text-right">
           <span className="font-bold text-lg text-gray-900">${product.price.toFixed(2)}</span>
           {product.stock > 0 && product.stock < 10 && (
-            <div className="text-[10px] text-orange-500 font-bold">Quedan {product.stock}</div>
+            <Badge
+              variant="outline"
+              className="block text-orange-500 border-orange-200 text-[10px] px-1 py-0 h-auto rounded mt-0.5"
+            >
+              Quedan {product.stock}
+            </Badge>
           )}
         </div>
       </div>

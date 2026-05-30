@@ -10,7 +10,7 @@ import {
   ColumnFiltersState,
   PaginationState,
 } from "@tanstack/react-table";
-import { Edit, Minus, Package, Plus, Trash2 } from "lucide-preact";
+import { Edit, History, Minus, Package, Plus, Trash2 } from "lucide-preact";
 import { useState } from "preact/hooks";
 import SortIcon from "@/components/SortIcon";
 import Pagination from "@/components/Pagination";
@@ -21,6 +21,7 @@ interface InventoryTableProps {
   onEditProduct: (product: Product) => void;
   onDeleteProduct: (id: number) => void;
   onQuickStock: (id: number, delta: number) => void;
+  onViewHistory?: (product: Product) => void;
   pageSize: number;
   currentPage: number;
   onPageChange: (page: number) => void;
@@ -42,6 +43,7 @@ export default function InventoryTable({
   onEditProduct,
   onDeleteProduct,
   onQuickStock,
+  onViewHistory,
   pageSize,
   currentPage,
   onPageChange,
@@ -109,7 +111,8 @@ export default function InventoryTable({
           <div className="flex items-center justify-center gap-2">
             <button
               onClick={() => onQuickStock(productId, -1)}
-              className="w-6 h-6 flex items-center justify-center rounded bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+              disabled={stock === 0}
+              className="w-6 h-6 flex items-center justify-center rounded bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-gray-100 disabled:hover:text-gray-500"
             >
               <Minus size={14} />
             </button>
@@ -147,6 +150,15 @@ export default function InventoryTable({
         const product = info.row.original;
         return (
           <div className="flex items-center justify-end gap-2">
+            {onViewHistory && (
+              <button
+                onClick={() => onViewHistory(product)}
+                className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                title="Ver historial"
+              >
+                <History size={16} />
+              </button>
+            )}
             <button
               onClick={() => onEditProduct(product)}
               className="p-2 text-gray-400 hover:text-primary hover:bg-indigo-50 rounded-lg transition-colors"

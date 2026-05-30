@@ -10,9 +10,10 @@ use super::structs::{
 use crate::entities::{
     payment_methods,
     prelude::{PaymentMethods, Products, Sales},
-    products, sale_details, sale_payments, sales,
+    sale_details, sale_payments, sales,
 };
 use crate::sessions::require_permission;
+use crate::shifts::repository::find_open_shift;
 use crate::AppState;
 
 const DB_ERROR: &str = "Error en la base de datos";
@@ -109,7 +110,12 @@ pub async fn create_sale(
     let session = require_permission(&state, "sales.create")?;
     let db = &state.database;
 
-    // 2. Iniciar transacción
+    // 2. Obtener turno activo y retener su id para asociarlo a la venta
+    let open_shift = find_open_shift(db)
+        .await?
+        .ok_or_else(|| "No hay un turno activo. Debe abrir un turno antes de realizar operaciones.".to_string())?;
+
+    // 3. Iniciar transacción
     let txn = db
         .begin()
         .await
@@ -164,6 +170,7 @@ pub async fn create_sale(
         subtotal: Set(request.subtotal),
         total: Set(request.total),
         status: Set(true),
+        shift_id: Set(Some(open_shift.id)),
         created_by: Set(session.user_id.clone()),
         updated_by: Set(session.user_id.clone()),
         ..Default::default()
@@ -199,21 +206,28 @@ pub async fn create_sale(
             .await
             .map_err(|e| format!("Error al registrar detalle de venta: {:?}", e))?;
 
-        // Actualizar stock del producto (restar cantidad)
+        // Actualizar stock del producto mediante el servicio centralizado de inventario
         let product = Products::find_by_id(item.product_id)
             .one(&txn)
             .await
             .map_err(|_| "Error al actualizar stock")?
             .ok_or("Producto no encontrado")?;
 
-        let mut product_active: products::ActiveModel = product.into();
-        product_active.stock = Set(product_active.stock.unwrap() - item.quantity);
-        product_active.updated_by = Set(session.user_id.clone());
+        let previous_stock = product.stock;
+        let new_stock = previous_stock - item.quantity;
 
-        product_active
-            .update(&txn)
-            .await
-            .map_err(|e| format!("Error al actualizar inventario: {:?}", e))?;
+        crate::inventory::service::record_stock_change(
+            &txn,
+            item.product_id,
+            "sale",
+            item.quantity,
+            previous_stock,
+            new_stock,
+            "sale",
+            Some(format!("Venta {}", sale_id)),
+            &session.user_id,
+        )
+        .await?;
     }
 
     // 9. Crear registro de pago

@@ -1,7 +1,10 @@
 import {
+  Archive,
   BanknoteArrowUp,
   BarChart3,
+  History,
   Package,
+  Printer,
   Settings,
   ShieldUser,
   ShoppingCart,
@@ -27,6 +30,12 @@ export const MENU_ITEMS: MenuItem[] = [
     permission: PERMISSIONS.SALES_CREATE,
   },
   {
+    id: "shifts",
+    icon: History,
+    label: "Turnos",
+    permission: PERMISSIONS.SHIFTS_VIEW,
+  },
+  {
     id: "refunds",
     icon: BanknoteArrowUp,
     label: "Reembolsos",
@@ -39,9 +48,15 @@ export const MENU_ITEMS: MenuItem[] = [
     permission: PERMISSIONS.USERS_VIEW,
   },
   {
-    id: "inventory",
+    id: "products",
     icon: Package,
     label: "Productos",
+    permission: PERMISSIONS.PRODUCTS_VIEW,
+  },
+  {
+    id: "inventory",
+    icon: Archive,
+    label: "Inventario",
     permission: PERMISSIONS.PRODUCTS_VIEW,
   },
   {
@@ -59,6 +74,12 @@ export const MENU_ITEMS: MenuItem[] = [
       PERMISSIONS.REPORTS_INVENTORY,
       PERMISSIONS.REPORTS_FINANCIAL,
     ],
+  },
+  {
+    id: "printing",
+    icon: Printer,
+    label: "Impresión",
+    permission: PERMISSIONS.SETTINGS_VIEW,
   },
   {
     id: "settings",

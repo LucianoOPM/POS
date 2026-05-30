@@ -11,7 +11,10 @@ import type {
   SalesProduct,
 } from "@/types";
 import { salesActions } from "@/actions/sales";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 export default function Sales() {
   const [viewState, setViewState] = useState<string>("sales");
@@ -22,13 +25,11 @@ export default function Sales() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Cargar payment methods
   const { data: paymentMethods } = useSWR<PaymentMethodResponse[]>(
     "payment_methods",
     salesActions.getPaymentMethods
   );
 
-  // Mapear tipo de pago frontend a ID backend
   const getPaymentMethodId = (paymentType: string): number | null => {
     if (!paymentMethods) return null;
 
@@ -87,7 +88,6 @@ export default function Sales() {
   };
 
   const handleFinalizeSale = async () => {
-    // Validaciones
     if (selectedPayment === "cash" && change < 0) {
       setError("Efectivo insuficiente");
       return;
@@ -108,13 +108,12 @@ export default function Sales() {
     setError(null);
 
     try {
-      // Construir request
       const request: CreateSaleRequest = {
         items: cart.map((item) => ({
           product_id: item.id,
           quantity: item.quantity,
           unit_price: item.price,
-          tax_rate: item.tax / 100, // Convertir 16 a 0.16
+          tax_rate: item.tax / 100,
         })),
         payment_method_id: paymentMethodId,
         subtotal: subtotal,
@@ -123,9 +122,9 @@ export default function Sales() {
 
       const response = await salesActions.createSale(request);
 
-      // Éxito - mostrar ticket
       setCreatedSaleId(response.sale_id);
       setViewState("ticket");
+      mutate("low_stock");
     } catch (err) {
       console.error("Error creating sale:", err);
       setError(err instanceof Error ? err.message : String(err));
@@ -143,17 +142,14 @@ export default function Sales() {
     setViewState("sales");
   };
 
-  // Manejo de teclas especiales para payment view
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Escape - Volver a ventas (desde vista de pago)
       if (e.key === "Escape") {
         if (viewState === "payment") {
           setViewState("sales");
         }
       }
 
-      // Enter - Confirmar pago (solo en vista de pago con cambio válido)
       if (e.key === "Enter") {
         if (viewState === "payment") {
           if (selectedPayment === "cash" && change >= 0) {
@@ -170,7 +166,7 @@ export default function Sales() {
   }, [viewState, change, selectedPayment]);
 
   return (
-    <div className="flex flex-col h-full animate-in fade-in duration-300">
+    <div className="flex flex-col h-full">
       {/* Error toast */}
       {error && (
         <div className="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-in slide-in-from-right">
@@ -185,7 +181,6 @@ export default function Sales() {
       )}
 
       <main className="flex-1 flex overflow-hidden">
-        {/* === COLUMNA IZQUIERDA: WORKSPACE === */}
         {viewState === "sales" && (
           <SalesView cart={cart} onAddToCart={addToCart} onStartPayment={handlePaymentStart} />
         )}
@@ -206,35 +201,37 @@ export default function Sales() {
 
         {viewState === "ticket" && <TicketView saleId={createdSaleId} onNewSale={handleNewSale} />}
 
-        {/* === COLUMNA DERECHA: TICKET / CARRITO === */}
+        {/* Panel derecho: Carrito */}
         {viewState !== "ticket" && (
           <section className="w-105 bg-white flex flex-col border-l border-gray-200 shadow-xl z-20">
-            {/* Header del Ticket */}
+            {/* Header */}
             <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-              <div>
-                <h2 className="font-bold text-gray-800 text-lg">Resúmen de la venta</h2>
-              </div>
+              <h2 className="font-bold text-gray-800 text-lg">Resúmen de la venta</h2>
               <div className="flex gap-2">
-                <button
+                <Button
+                  variant="outline"
+                  size="icon"
                   title="Agregar Nota"
-                  className="p-2 bg-white border border-gray-200 rounded hover:bg-gray-100 text-secondary-600"
+                  className="text-secondary-600"
                 >
                   <FileText size={18} />
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
                   title="Cancelar Venta"
                   onClick={clearCart}
-                  className="p-2 bg-white border border-gray-200 rounded hover:bg-red-50 text-red-500"
+                  className="text-red-500 hover:bg-red-50 hover:border-red-200"
                 >
                   <Trash2 size={18} />
-                </button>
+                </Button>
               </div>
             </div>
 
-            {/* Lista de Productos */}
-            <div className={`flex-1 ${cart.length > 0 ? "overflow-y-auto" : "overflow-hidden"}`}>
+            {/* Lista de productos */}
+            <ScrollArea className="flex-1">
               {cart.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-gray-400 p-8 text-center opacity-60">
+                <div className="h-full flex flex-col items-center justify-center text-gray-400 p-8 text-center opacity-60 min-h-40">
                   <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                     <QrCode size={40} strokeWidth={1.5} className="text-slate-300" />
                   </div>
@@ -254,10 +251,10 @@ export default function Sales() {
                   ))}
                 </div>
               )}
-              <div className="h-4"></div>
-            </div>
+              <div className="h-4" />
+            </ScrollArea>
 
-            {/* Resumen Financiero */}
+            {/* Resumen financiero */}
             <div className="p-5 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
               <div className="space-y-1 mb-3 text-sm">
                 <div className="flex justify-between text-gray-500">
@@ -270,7 +267,9 @@ export default function Sales() {
                 </div>
               </div>
 
-              <div className="flex justify-between items-end mb-4 pt-3 border-t border-dashed border-gray-200">
+              <Separator className="mb-4 bg-gray-200" />
+
+              <div className="flex justify-between items-end mb-4">
                 <span className="text-gray-800 font-bold text-lg">Total</span>
                 <span className="text-primary-600 font-black text-4xl tracking-tight">
                   ${total.toFixed(2)}
@@ -278,22 +277,23 @@ export default function Sales() {
               </div>
 
               <div className="grid grid-cols-3 gap-2">
-                <button className="col-span-1 flex flex-col items-center justify-center py-2 border border-secondary-500 text-secondary-600 rounded-lg font-bold hover:bg-gray-50 transition-colors text-xs">
-                  <PauseCircle size={18} className="mb-1" />
+                <Button
+                  variant="outline"
+                  className="col-span-1 flex-col gap-1 h-auto py-2 text-xs text-secondary-600 border-secondary-500"
+                >
+                  <PauseCircle size={18} />
                   Pausar
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="brand"
+                  size="lg"
                   onClick={handlePaymentStart}
                   disabled={cart.length === 0 || !paymentMethods}
-                  className={`col-span-2 flex items-center justify-center gap-2 py-3 rounded-lg font-bold text-white shadow-lg transform transition-all active:scale-95 ${
-                    cart.length === 0 || !paymentMethods
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-primary-500 hover:bg-primary-600"
-                  }`}
+                  className="col-span-2 gap-2 rounded-lg"
                 >
                   COBRAR{" "}
                   <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] ml-1">F1</span>
-                </button>
+                </Button>
               </div>
             </div>
           </section>

@@ -121,12 +121,19 @@ impl MigrationTrait for Migration {
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // Eliminar en orden inverso por las FKs
+        // Las tablas transaccionales (índices 6-9) aún existen cuando este down() corre
+        // (índice 10). Hay que limpiarlas primero en orden FK-safe antes de borrar los datos
+        // sembrados, o el DELETE de payment_methods falla por ON DELETE RESTRICT.
+        for table in ["refund_details", "sale_details", "sale_payments", "refunds", "sales", "products"] {
+            manager
+                .exec_stmt(Query::delete().from_table(Alias::new(table)).to_owned())
+                .await?;
+        }
+
         manager
             .exec_stmt(
                 Query::delete()
                     .from_table(Alias::new("users"))
-                    .and_where(Expr::col(Alias::new("username")).eq("admin"))
                     .to_owned(),
             )
             .await?;

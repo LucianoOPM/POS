@@ -14,4 +14,7 @@ pub mod sale_details;
 pub mod sale_payments;
 pub mod sales;
 pub mod settings;
+pub mod shifts;
+pub mod stock_movements;
+pub mod ticket_prints;
 pub mod users;

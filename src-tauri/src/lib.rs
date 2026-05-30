@@ -5,12 +5,16 @@ mod db;
 use sea_orm::DatabaseConnection;
 mod categories;
 mod entities;
+mod printing;
 mod products;
 mod refunds;
 mod reports;
 mod sales;
 mod sessions;
 mod settings;
+mod shifts;
+mod inventory;
+mod stock_movements;
 mod users;
 mod utils;
 
@@ -18,7 +22,13 @@ use categories::handlers::{
     create_category, delete_category, get_all_categories, get_category_by_id, hard_delete_category,
     update_category,
 };
-use products::ProductHandlers::{create_product, delete_product, get_products, update_product};
+use printing::{
+    configure_printer, get_print_jobs, get_printer_config, preview_receipt, print_receipt,
+    PrintService, PrinterConfig,
+};
+use products::ProductHandlers::{
+    check_low_stock, create_product, delete_product, get_products, update_product,
+};
 use reports::ReportsHandler::{
     get_category_report, get_dashboard_report, get_payment_method_report, get_product_report,
     get_refunds_report, get_sales_over_time_report,
@@ -31,15 +41,19 @@ use refunds::RefundsHandler::{
     create_refund, delete_refund, get_recent_sales_for_refund, get_refund_by_id, get_refunds,
     get_sale_for_refund,
 };
+use shifts::ShiftsHandler::{complete_shift_closure, get_current_shift, get_shift_by_id, get_shifts, open_shift, start_shift_closure, void_shift};
+use stock_movements::StockMovementsHandler::{
+    create_stock_movement, get_product_movements, get_stock_movements,
+};
 use settings::SettingsHandler::{
     get_setting, get_settings, get_settings_by_category, test_erp_connection, trigger_erp_sync,
     update_setting, update_settings_batch,
 };
 
-#[derive(Debug)]
 struct AppState {
     database: DatabaseConnection,
     session: Mutex<Option<Session>>,
+    print_service: tokio::sync::Mutex<PrintService>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -51,11 +65,14 @@ pub async fn run() {
         .await
         .expect("Error conectando a la base de datos");
 
+    let print_service = PrintService::new(PrinterConfig::default());
+
     tauri::Builder::default()
         .setup(|app| {
             app.manage(AppState {
                 database: db_connection,
                 session: Mutex::new(None),
+                print_service: tokio::sync::Mutex::new(print_service),
             });
             Ok(())
         })
@@ -68,6 +85,7 @@ pub async fn run() {
             delete_product,
             get_products,
             update_product,
+            check_low_stock,
             get_all_categories,
             get_category_by_id,
             create_category,
@@ -105,6 +123,24 @@ pub async fn run() {
             update_settings_batch,
             test_erp_connection,
             trigger_erp_sync,
+            // Shifts
+            open_shift,
+            get_current_shift,
+            get_shifts,
+            get_shift_by_id,
+            start_shift_closure,
+            complete_shift_closure,
+            void_shift,
+            // Stock Movements
+            create_stock_movement,
+            get_stock_movements,
+            get_product_movements,
+            // Printing
+            print_receipt,
+            preview_receipt,
+            get_print_jobs,
+            configure_printer,
+            get_printer_config,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -12,6 +12,7 @@ export type {
   ProductListResponse,
   StockStatus,
   StockStatusType,
+  LowStockProduct,
 } from "./product";
 
 // Auth types
@@ -91,3 +92,19 @@ export type {
   UpdateSettingsResponse,
   SettingFieldProps,
 } from "./settings";
+
+// Printing types
+export type { PrintJob, PrinterConfig } from "./printing";
+
+// Stock movement types
+export type {
+  MovementType,
+  MovementReason,
+  StockMovement,
+  NewStockMovement,
+  StockMovementFilter,
+  StockMovementListResponse,
+} from "./stock_movement";
+
+// Shift types
+export type { Shift, OpenShiftRequest } from "./shift";

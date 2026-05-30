@@ -1,8 +1,9 @@
 import { Route, Switch, Redirect, Router } from "wouter";
 import { useHashLocation } from "wouter/use-hash-location";
-import { ComponentChildren, JSX } from "preact";
+import { JSX } from "preact";
 import { useEffect } from "preact/hooks";
 import { useAuthStore } from "@/store/authStore";
+import { useCurrentShift } from "@/hooks/useCurrentShift";
 import { PERMISSIONS } from "@/types/permissions";
 
 // Layouts
@@ -12,12 +13,15 @@ import AuthLayout from "@/layouts/AuthLayout";
 // Pages
 import Login from "@/pages/Login";
 import Sales from "@/pages/sales/Index";
+import Products from "@/pages/products/Index";
 import Inventory from "@/pages/inventory/Index";
 import Reports from "@/pages/reports/Index";
 import Users from "@/pages/users/Index";
 import Refunds from "@/pages/refunds/Index";
 import RefundCreate from "@/pages/refunds/Create";
 import Settings from "@/pages/settings/Index";
+import Printing from "@/pages/printing/Index";
+import ShiftsHistory from "@/pages/shifts/Index";
 
 // Report Views
 import DashboardReport from "@/pages/reports/views/DashboardReport";
@@ -36,6 +40,7 @@ interface RouteConfig {
   title?: string;
   requiredPermission?: string;
   requiredAnyPermission?: string[];
+  requireActiveShift?: boolean;
 }
 
 /**
@@ -56,7 +61,16 @@ export const routes: RouteConfig[] = [
     layout: "main",
     requireAuth: true,
     requiredPermission: PERMISSIONS.SALES_CREATE,
+    requireActiveShift: true,
     title: "Ventas",
+  },
+  {
+    path: "/products",
+    component: Products,
+    layout: "main",
+    requireAuth: true,
+    requiredPermission: PERMISSIONS.PRODUCTS_VIEW,
+    title: "Productos",
   },
   {
     path: "/inventory",
@@ -80,6 +94,7 @@ export const routes: RouteConfig[] = [
     layout: "main",
     requireAuth: true,
     requiredPermission: PERMISSIONS.SALES_REFUND,
+    requireActiveShift: true,
     title: "Reembolsos",
   },
   {
@@ -88,6 +103,7 @@ export const routes: RouteConfig[] = [
     layout: "main",
     requireAuth: true,
     requiredPermission: PERMISSIONS.SALES_REFUND,
+    requireActiveShift: true,
     title: "Nuevo Reembolso",
   },
   {
@@ -158,23 +174,23 @@ export const routes: RouteConfig[] = [
     requiredPermission: PERMISSIONS.SETTINGS_VIEW,
     title: "Configuracion",
   },
+  {
+    path: "/printing",
+    component: Printing,
+    layout: "main",
+    requireAuth: true,
+    requiredPermission: PERMISSIONS.SETTINGS_VIEW,
+    title: "Impresión",
+  },
+  {
+    path: "/shifts",
+    component: ShiftsHistory,
+    layout: "main",
+    requireAuth: true,
+    requiredPermission: PERMISSIONS.SHIFTS_VIEW,
+    title: "Turnos",
+  },
 ];
-
-interface LayoutWrapperProps {
-  layout: "main" | "auth";
-  children: ComponentChildren;
-}
-
-/**
- * Componente wrapper que aplica el layout correcto
- */
-function LayoutWrapper({ layout, children }: LayoutWrapperProps) {
-  if (layout === "auth") {
-    return <AuthLayout>{children}</AuthLayout>;
-  }
-
-  return <MainLayout>{children}</MainLayout>;
-}
 
 /**
  * Componente para mostrar cuando el usuario no tiene permisos
@@ -198,19 +214,21 @@ function AccessDenied() {
   );
 }
 
+const authRoutes = routes.filter((r) => r.layout === "auth");
+const mainRoutes = routes.filter((r) => r.layout === "main");
+
 /**
  * Componente principal de rutas
  * Renderiza todas las rutas configuradas con sus respectivos layouts
  */
 export default function AppRoutes() {
   const { isAuthenticated, isLoading, checkAuth, hasPermission, hasAnyPermission } = useAuthStore();
+  const { shift, isLoading: isShiftLoading } = useCurrentShift();
 
-  // Verificar autenticación al iniciar la app
   useEffect(() => {
     checkAuth();
   }, []);
 
-  // Mostrar loading mientras se verifica la sesión
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-50">
@@ -225,56 +243,79 @@ export default function AppRoutes() {
   return (
     <Router hook={useHashLocation}>
       <Switch>
-        {routes.map((route) => (
+        {/* Rutas de autenticación */}
+        {authRoutes.map((route) => (
           <Route key={route.path} path={route.path}>
             {() => {
-              // Si la ruta requiere autenticación y el usuario no está autenticado
-              if (route.requireAuth && !isAuthenticated) {
-                return <Redirect to="/login" />;
-              }
-
-              // Si el usuario está autenticado e intenta acceder al login
-              if (route.path === "/login" && isAuthenticated) {
-                return <Redirect to="/" />;
-              }
-
-              // Verificar permiso único
-              if (route.requiredPermission && !hasPermission(route.requiredPermission)) {
-                return <AccessDenied />;
-              }
-
-              // Verificar al menos uno de los permisos
-              if (route.requiredAnyPermission && !hasAnyPermission(route.requiredAnyPermission)) {
-                return <AccessDenied />;
-              }
-
+              if (isAuthenticated) return <Redirect to="/" />;
               const PageComponent = route.component;
-
               return (
-                <LayoutWrapper layout={route.layout}>
+                <AuthLayout>
                   <PageComponent />
-                </LayoutWrapper>
+                </AuthLayout>
               );
             }}
           </Route>
         ))}
 
-        {/* Ruta 404 - No encontrada */}
+        {/* Rutas principales — MainLayout persiste entre navegaciones */}
         <Route>
-          {() => (
-            <div className="flex items-center justify-center h-screen bg-background">
-              <div className="text-center">
-                <h1 className="text-6xl font-bold text-primary-950 mb-4">404</h1>
-                <p className="text-xl text-secondary-600 mb-8">Página no encontrada</p>
-                <a
-                  href="/#/"
-                  className="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
-                >
-                  Volver al inicio
-                </a>
-              </div>
-            </div>
-          )}
+          {() => {
+            if (!isAuthenticated) return <Redirect to="/login" />;
+            return (
+              <MainLayout>
+                <Switch>
+                  {mainRoutes.map((route) => (
+                    <Route key={route.path} path={route.path}>
+                      {() => {
+                        if (route.requiredPermission && !hasPermission(route.requiredPermission)) {
+                          return <AccessDenied />;
+                        }
+                        if (
+                          route.requiredAnyPermission &&
+                          !hasAnyPermission(route.requiredAnyPermission)
+                        ) {
+                          return <AccessDenied />;
+                        }
+                        if (route.requireActiveShift) {
+                          if (isShiftLoading) {
+                            return (
+                              <div className="flex items-center justify-center h-full">
+                                <div className="w-8 h-8 border-4 border-slate-900 border-t-transparent rounded-full animate-spin" />
+                              </div>
+                            );
+                          }
+                          if (!shift || shift.status !== "OPEN") {
+                            return <Redirect to="/shifts" />;
+                          }
+                        }
+                        const PageComponent = route.component;
+                        return <PageComponent />;
+                      }}
+                    </Route>
+                  ))}
+
+                  {/* 404 dentro del layout principal */}
+                  <Route>
+                    {() => (
+                      <div className="flex items-center justify-center h-full bg-background">
+                        <div className="text-center">
+                          <h1 className="text-6xl font-bold text-primary-950 mb-4">404</h1>
+                          <p className="text-xl text-secondary-600 mb-8">Página no encontrada</p>
+                          <a
+                            href="/#/"
+                            className="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                          >
+                            Volver al inicio
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </Route>
+                </Switch>
+              </MainLayout>
+            );
+          }}
         </Route>
       </Switch>
     </Router>

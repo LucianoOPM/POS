@@ -10,6 +10,7 @@ pub struct Sale {
     pub subtotal: Decimal,
     pub total: Decimal,
     pub status: bool,
+    pub shift_id: Option<i32>,
     pub created_at: String,
     pub updated_at: String,
     pub created_by: String,
@@ -23,6 +24,7 @@ impl From<sales::Model> for Sale {
             subtotal: value.subtotal,
             total: value.total,
             status: value.status,
+            shift_id: value.shift_id,
             created_at: value.created_at.to_string(),
             updated_at: value.updated_at.to_string(),
             created_by: value.created_by,
@@ -50,37 +52,6 @@ impl From<NewSale> for sales::ActiveModel {
             updated_by: Set(value.created_by),
             ..Default::default()
         }
-    }
-}
-
-/// Actualizar venta (para editar)
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct UpdateSale {
-    pub subtotal: Option<Decimal>,
-    pub total: Option<Decimal>,
-    pub status: Option<bool>,
-    pub updated_by: String,
-}
-
-impl UpdateSale {
-    pub fn into_active_model(self, id: String) -> sales::ActiveModel {
-        let mut active_model = ActiveModel {
-            id: Set(id),
-            ..Default::default()
-        };
-
-        if let Some(subtotal) = self.subtotal {
-            active_model.subtotal = Set(subtotal);
-        }
-        if let Some(total) = self.total {
-            active_model.total = Set(total);
-        }
-        if let Some(status) = self.status {
-            active_model.status = Set(status);
-        }
-
-        active_model.updated_by = Set(self.updated_by);
-        active_model
     }
 }
 

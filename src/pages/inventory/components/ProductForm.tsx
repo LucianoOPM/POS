@@ -32,12 +32,13 @@ export default function ProductForm({ product, setShowProductModal, onSuccess }:
       name: product?.name || "",
       category_id: product?.category_id || "",
       code: product?.code || "",
-      stock: product?.stock || "",
+      stock: product ? undefined : "",
+      min_stock: product?.min_stock ?? "",
       price: product?.price || "",
       cost: product?.cost || "",
       tax: product?.tax || "",
-      createdBy: product ? undefined : session?.user_id, // Solo para productos nuevos
-      updatedBy: product ? session?.user_id : undefined, // Solo para edición
+      createdBy: product ? undefined : session?.user_id,
+      updatedBy: product ? session?.user_id : undefined,
     },
     shouldValidate: "onBlur",
     shouldRevalidate: "onSubmit",
@@ -57,24 +58,26 @@ export default function ProductForm({ product, setShowProductModal, onSuccess }:
 
       try {
         if (product) {
-          // Actualizar producto existente
+          // Actualizar producto existente (stock se gestiona exclusivamente desde Inventario)
           await productActions.updateProduct(product.id, {
             name: formData.name,
             category_id: formData.category_id || null,
             code: formData.code,
-            stock: formData.stock,
+            min_stock: formData.min_stock,
+            clear_min_stock: formData.min_stock === undefined,
             price: formData.price,
             cost: formData.cost,
             tax: formData.tax,
             updated_by: session?.user_id || "",
           });
         } else {
-          // Crear nuevo producto
+          // Crear nuevo producto con stock inicial (registra movimiento automáticamente)
           await productActions.createProduct({
             name: formData.name,
             category_id: formData.category_id || null,
             code: formData.code,
-            stock: formData.stock,
+            stock: formData.stock ?? 0,
+            min_stock: formData.min_stock ?? null,
             price: formData.price,
             cost: formData.cost,
             tax: formData.tax,
@@ -225,25 +228,39 @@ export default function ProductForm({ product, setShowProductModal, onSuccess }:
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className={`grid gap-4 ${product ? "grid-cols-2" : "grid-cols-3"}`}>
+          {!product && (
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-500 uppercase">Stock Inicial</label>
+              <input
+                {...getInputProps(fields.stock, { type: "number" })}
+                className="w-full p-2 border border-gray-300 rounded focus:border-primary outline-none"
+                placeholder="0"
+              />
+              {fields.stock.errors && (
+                <p className="text-xs text-red-500 mt-1">{fields.stock.errors}</p>
+              )}
+            </div>
+          )}
           <div className="space-y-1">
-            <label className="text-xs font-bold text-gray-500 uppercase">Stock Inicial</label>
+            <label className="text-xs font-bold text-gray-500 uppercase">
+              Stock Mínimo
+              <span className="text-gray-400 font-normal ml-1 text-[10px]">Vacío = global</span>
+            </label>
             <input
-              required
-              {...getInputProps(fields.stock, { type: "number" })}
+              {...getInputProps(fields.min_stock, { type: "number" })}
               className="w-full p-2 border border-gray-300 rounded focus:border-primary outline-none"
-              placeholder="0"
+              placeholder="Global"
+              min="0"
             />
-            {fields.stock.errors && (
-              <p className="text-xs text-red-500 mt-1">{fields.stock.errors}</p>
+            {fields.min_stock.errors && (
+              <p className="text-xs text-red-500 mt-1">{fields.min_stock.errors}</p>
             )}
           </div>
           <div className="space-y-1">
             <label className="text-xs font-bold text-gray-500 uppercase">
               Impuesto (%)
-              <span className="text-gray-400 font-normal ml-1 text-[10px]">
-                Ej: 16 para IVA 16%
-              </span>
+              <span className="text-gray-400 font-normal ml-1 text-[10px]">Ej: 16%</span>
             </label>
             <input
               step="0.01"

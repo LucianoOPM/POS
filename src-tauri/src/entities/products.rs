@@ -24,6 +24,7 @@ pub struct Model {
     pub updated_at: DateTimeWithTimeZone,
     pub created_by: String,
     pub updated_by: String,
+    pub min_stock: Option<i32>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -40,6 +41,8 @@ pub enum Relation {
     RefundDetails,
     #[sea_orm(has_many = "super::sale_details::Entity")]
     SaleDetails,
+    #[sea_orm(has_many = "super::stock_movements::Entity")]
+    StockMovements,
     #[sea_orm(
         belongs_to = "super::users::Entity",
         from = "Column::CreatedBy",
@@ -73,6 +76,12 @@ impl Related<super::refund_details::Entity> for Entity {
 impl Related<super::sale_details::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::SaleDetails.def()
+    }
+}
+
+impl Related<super::stock_movements::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::StockMovements.def()
     }
 }
 

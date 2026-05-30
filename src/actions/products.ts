@@ -1,5 +1,11 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { NewProduct, UpdateProduct, ProductFilter, ProductListResponse } from "@/types";
+import type {
+  NewProduct,
+  UpdateProduct,
+  ProductFilter,
+  ProductListResponse,
+  LowStockProduct,
+} from "@/types";
 
 export const productActions = {
   getProducts: async (
@@ -26,5 +32,9 @@ export const productActions = {
 
   deleteProduct: async (idProduct: number) => {
     return await invoke("delete_product", { idProduct });
+  },
+
+  checkLowStock: async (): Promise<LowStockProduct[]> => {
+    return await invoke<LowStockProduct[]>("check_low_stock");
   },
 };

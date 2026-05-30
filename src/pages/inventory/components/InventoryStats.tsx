@@ -1,14 +1,15 @@
 import { AlertCircle, AlertTriangle, Banknote, Package } from "lucide-preact";
 import type { Product } from "@/types";
+import { useLowStock } from "@/hooks/useLowStock";
 
 interface InventoryStatsProps {
   products: Product[];
 }
 
 export default function InventoryStats({ products }: InventoryStatsProps) {
+  const { lowStockCount } = useLowStock();
   const totalProducts = products.length;
   const inventoryValue = products.reduce((acc, p) => acc + parseFloat(p.cost) * p.stock, 0);
-  const lowStock = products.filter((p) => p.stock > 0 && p.stock < 10).length;
   const outOfStock = products.filter((p) => p.stock === 0).length;
 
   return (
@@ -38,7 +39,7 @@ export default function InventoryStats({ products }: InventoryStatsProps) {
       <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
         <div>
           <p className="text-gray-500 text-xs font-bold uppercase">Stock Bajo</p>
-          <p className="text-2xl font-black text-orange-600">{lowStock}</p>
+          <p className="text-2xl font-black text-orange-600">{lowStockCount}</p>
         </div>
         <div className="bg-orange-50 p-2 rounded-lg text-orange-600">
           <AlertTriangle size={24} />

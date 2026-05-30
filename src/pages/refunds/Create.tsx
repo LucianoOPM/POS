@@ -212,7 +212,7 @@ export default function Create() {
     activeSaleId && selectedItems.length > 0 && reason.trim().length > 0 && !isSubmitting;
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden animate-in fade-in duration-300">
+    <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden">
       {/* Header */}
       <div className="px-6 py-4 bg-white border-b border-gray-200">
         <div className="flex items-center gap-4">
