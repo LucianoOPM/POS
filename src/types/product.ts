@@ -49,7 +49,6 @@ export interface UpdateProduct {
   name?: string;
   category_id?: number | null;
   code?: string;
-  stock?: number;
   min_stock?: number;
   clear_min_stock?: boolean;
   is_active?: boolean;
