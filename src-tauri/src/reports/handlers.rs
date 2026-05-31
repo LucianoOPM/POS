@@ -8,8 +8,10 @@ use super::structs::{
     CategoryReportItem, CategoryReportParams, CategoryReportResult, DashboardParams,
     DashboardResult, PaymentMethodReportItem, PaymentMethodReportParams, PaymentMethodReportResult,
     ProductReportItem, ProductReportParams, ProductReportResult, RefundsReportParams,
-    RefundsReportResult, SalesOverTimeItem, SalesOverTimeParams, SalesOverTimeResult, TimeGrouping,
-    TopRefundedProduct,
+    RefundsReportResult, SalesOverTimeItem, SalesOverTimeParams, SalesOverTimeResult,
+    SalesReportParams, SalesReportResult, ShiftPaymentMethodItem, ShiftRefundsSummary,
+    ShiftReportInfo, ShiftReportParams, ShiftReportResult, ShiftSalesSummary, ShiftTopProduct,
+    TimeGrouping, TopRefundedProduct,
 };
 
 const DB_ERROR: &str = "Error al consultar la base de datos.";
@@ -18,162 +20,14 @@ const DB_ERROR: &str = "Error al consultar la base de datos.";
 // 1. DASHBOARD EJECUTIVO DE VENTAS
 // ============================================================================
 
-#[derive(FromQueryResult)]
-struct DashboardRaw {
-    gross_sales: Option<Decimal>,
-    total_refunded: Option<Decimal>,
-    sales_count: Option<i64>,
-}
-
-#[derive(FromQueryResult)]
-struct DominantPaymentRaw {
-    payment_method_name: Option<String>,
-    total_amount: Option<Decimal>,
-}
-
-#[derive(FromQueryResult)]
-struct TopProductRaw {
-    product_name: Option<String>,
-    total_quantity: Option<i64>,
-}
-
 #[tauri::command]
 pub async fn get_dashboard_report(
     state: tauri::State<'_, AppState>,
     params: DashboardParams,
 ) -> Result<DashboardResult, String> {
-    require_permission(&state, "reports.view").map_err(|e| e.to_string())?;
+    require_permission(&state, "reports.sales").map_err(|e| e.to_string())?;
     validate_date_range(&params.date_from, &params.date_to).map_err(|e| e.to_string())?;
-
-    let db = &state.database;
-
-    // Consulta principal: ventas brutas, reembolsos y conteo
-    let main_query = Statement::from_sql_and_values(
-        DatabaseBackend::Postgres,
-        r#"
-        SELECT
-            COALESCE(SUM(s.total), 0) as gross_sales,
-            COALESCE((
-                SELECT SUM(r.amount)
-                FROM refunds r
-                INNER JOIN sales s2 ON r.sale_id = s2.id
-                WHERE s2.status = true
-                AND DATE(s2.created_at) >= $1::date
-                AND DATE(s2.created_at) <= $2::date
-            ), 0) as total_refunded,
-            COUNT(s.id) as sales_count
-        FROM sales s
-        WHERE s.status = true
-        AND DATE(s.created_at) >= $1::date
-        AND DATE(s.created_at) <= $2::date
-        "#,
-        [
-            params.date_from.clone().into(),
-            params.date_to.clone().into(),
-        ],
-    );
-
-    let main_result = DashboardRaw::find_by_statement(main_query)
-        .one(db)
-        .await
-        .map_err(|_| DB_ERROR)?
-        .unwrap_or(DashboardRaw {
-            gross_sales: Some(Decimal::ZERO),
-            total_refunded: Some(Decimal::ZERO),
-            sales_count: Some(0),
-        });
-
-    let gross_sales = main_result.gross_sales.unwrap_or(Decimal::ZERO);
-    let total_refunded = main_result.total_refunded.unwrap_or(Decimal::ZERO);
-    let sales_count = main_result.sales_count.unwrap_or(0);
-    let net_sales = gross_sales - total_refunded;
-
-    let average_ticket = if sales_count > 0 {
-        net_sales / Decimal::from(sales_count)
-    } else {
-        Decimal::ZERO
-    };
-
-    // Método de pago dominante
-    let payment_query = Statement::from_sql_and_values(
-        DatabaseBackend::Postgres,
-        r#"
-        SELECT
-            pm.name as payment_method_name,
-            SUM(sp.amount) as total_amount
-        FROM sale_payments sp
-        INNER JOIN payment_methods pm ON sp.payment_method_id = pm.id
-        INNER JOIN sales s ON sp.sale_id = s.id
-        WHERE s.status = true
-        AND DATE(s.created_at) >= $1::date
-        AND DATE(s.created_at) <= $2::date
-        GROUP BY pm.id, pm.name
-        ORDER BY total_amount DESC
-        LIMIT 1
-        "#,
-        [
-            params.date_from.clone().into(),
-            params.date_to.clone().into(),
-        ],
-    );
-
-    let payment_result = DominantPaymentRaw::find_by_statement(payment_query)
-        .one(db)
-        .await
-        .map_err(|_| DB_ERROR)?;
-
-    let (dominant_payment_method, dominant_payment_amount) = match payment_result {
-        Some(p) => (
-            p.payment_method_name,
-            p.total_amount.unwrap_or(Decimal::ZERO),
-        ),
-        None => (None, Decimal::ZERO),
-    };
-
-    // Producto más vendido
-    let product_query = Statement::from_sql_and_values(
-        DatabaseBackend::Postgres,
-        r#"
-        SELECT
-            p.name as product_name,
-            SUM(sd.quantity)::bigint as total_quantity
-        FROM sale_details sd
-        INNER JOIN products p ON sd.product_id = p.id
-        INNER JOIN sales s ON sd.sale_id = s.id
-        WHERE s.status = true
-        AND DATE(s.created_at) >= $1::date
-        AND DATE(s.created_at) <= $2::date
-        GROUP BY p.id, p.name
-        ORDER BY total_quantity DESC
-        LIMIT 1
-        "#,
-        [
-            params.date_from.clone().into(),
-            params.date_to.clone().into(),
-        ],
-    );
-
-    let product_result = TopProductRaw::find_by_statement(product_query)
-        .one(db)
-        .await
-        .map_err(|_| DB_ERROR)?;
-
-    let (top_product, top_product_quantity) = match product_result {
-        Some(p) => (p.product_name, p.total_quantity.unwrap_or(0)),
-        None => (None, 0),
-    };
-
-    Ok(DashboardResult {
-        gross_sales,
-        total_refunded,
-        net_sales,
-        sales_count,
-        average_ticket,
-        dominant_payment_method,
-        dominant_payment_amount,
-        top_product,
-        top_product_quantity,
-    })
+    super::service::get_dashboard(&state.database, params).await
 }
 
 // ============================================================================
@@ -192,7 +46,7 @@ pub async fn get_sales_over_time_report(
     state: tauri::State<'_, AppState>,
     params: SalesOverTimeParams,
 ) -> Result<SalesOverTimeResult, String> {
-    require_permission(&state, "reports.view").map_err(|e| e.to_string())?;
+    require_permission(&state, "reports.sales").map_err(|e| e.to_string())?;
     validate_date_range(&params.date_from, &params.date_to).map_err(|e| e.to_string())?;
 
     let db = &state.database;
@@ -303,7 +157,7 @@ pub async fn get_product_report(
     state: tauri::State<'_, AppState>,
     params: ProductReportParams,
 ) -> Result<ProductReportResult, String> {
-    require_permission(&state, "reports.view").map_err(|e| e.to_string())?;
+    require_permission(&state, "reports.sales").map_err(|e| e.to_string())?;
     validate_date_range(&params.date_from, &params.date_to).map_err(|e| e.to_string())?;
 
     let db = &state.database;
@@ -460,7 +314,7 @@ pub async fn get_category_report(
     state: tauri::State<'_, AppState>,
     params: CategoryReportParams,
 ) -> Result<CategoryReportResult, String> {
-    require_permission(&state, "reports.view").map_err(|e| e.to_string())?;
+    require_permission(&state, "reports.sales").map_err(|e| e.to_string())?;
     validate_date_range(&params.date_from, &params.date_to).map_err(|e| e.to_string())?;
 
     let db = &state.database;
@@ -564,7 +418,7 @@ pub async fn get_payment_method_report(
     state: tauri::State<'_, AppState>,
     params: PaymentMethodReportParams,
 ) -> Result<PaymentMethodReportResult, String> {
-    require_permission(&state, "reports.view").map_err(|e| e.to_string())?;
+    require_permission(&state, "reports.sales").map_err(|e| e.to_string())?;
     validate_date_range(&params.date_from, &params.date_to).map_err(|e| e.to_string())?;
 
     let db = &state.database;
@@ -658,7 +512,7 @@ pub async fn get_refunds_report(
     state: tauri::State<'_, AppState>,
     params: RefundsReportParams,
 ) -> Result<RefundsReportResult, String> {
-    require_permission(&state, "reports.view").map_err(|e| e.to_string())?;
+    require_permission(&state, "reports.sales").map_err(|e| e.to_string())?;
     validate_date_range(&params.date_from, &params.date_to).map_err(|e| e.to_string())?;
 
     let db = &state.database;
@@ -760,5 +614,312 @@ pub async fn get_refunds_report(
         refund_percentage,
         gross_sales,
         top_refunded_products,
+    })
+}
+
+// ============================================================================
+// 7. REPORTE DETALLADO DE VENTAS
+// ============================================================================
+
+#[tauri::command]
+pub async fn get_sales_report(
+    state: tauri::State<'_, AppState>,
+    params: SalesReportParams,
+) -> Result<SalesReportResult, String> {
+    require_permission(&state, "reports.sales").map_err(|e| e.to_string())?;
+    validate_date_range(&params.date_from, &params.date_to).map_err(|e| e.to_string())?;
+    super::service::get_sales_report(&state.database, params).await
+}
+
+// ============================================================================
+// 8. REPORTE POR TURNO
+// ============================================================================
+
+#[derive(FromQueryResult)]
+struct ShiftInfoRaw {
+    shift_id: i32,
+    status: Option<String>,
+    opening_balance: Option<Decimal>,
+    opened_at: Option<String>,
+    closed_at: Option<String>,
+    duration_minutes: Option<i64>,
+    opened_by: Option<String>,
+}
+
+#[derive(FromQueryResult)]
+struct ShiftSalesRaw {
+    gross_sales: Option<Decimal>,
+    sales_count: Option<i64>,
+    total_products_sold: Option<i64>,
+}
+
+#[derive(FromQueryResult)]
+struct ShiftPaymentRaw {
+    payment_method_id: i32,
+    payment_method_name: String,
+    total_amount: Option<Decimal>,
+    transaction_count: Option<i64>,
+}
+
+#[derive(FromQueryResult)]
+struct ShiftTopProductRaw {
+    product_id: i32,
+    product_name: String,
+    category_name: Option<String>,
+    quantity_sold: Option<i64>,
+    gross_revenue: Option<Decimal>,
+    refunded_amount: Option<Decimal>,
+}
+
+#[derive(FromQueryResult)]
+struct ShiftRefundsRaw {
+    total_refunded: Option<Decimal>,
+    refunds_count: Option<i64>,
+}
+
+#[tauri::command]
+pub async fn get_shift_report(
+    state: tauri::State<'_, AppState>,
+    params: ShiftReportParams,
+) -> Result<ShiftReportResult, String> {
+    require_permission(&state, "reports.sales").map_err(|e| e.to_string())?;
+
+    let db = &state.database;
+    let shift_id = params.shift_id;
+
+    // Query 1: metadata del turno
+    let info_query = Statement::from_sql_and_values(
+        DatabaseBackend::Postgres,
+        r#"
+        SELECT
+            sh.id as shift_id,
+            sh.status,
+            sh.opening_balance,
+            TO_CHAR(sh.opened_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as opened_at,
+            TO_CHAR(sh.closed_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as closed_at,
+            CASE WHEN sh.closed_at IS NOT NULL
+                 THEN EXTRACT(EPOCH FROM (sh.closed_at - sh.opened_at))::bigint / 60
+                 ELSE NULL END as duration_minutes,
+            u.username as opened_by
+        FROM shifts sh
+        INNER JOIN users u ON sh.user_id = u.id
+        WHERE sh.id = $1
+        "#,
+        [shift_id.into()],
+    );
+
+    let info_raw = ShiftInfoRaw::find_by_statement(info_query)
+        .one(db)
+        .await
+        .map_err(|_| DB_ERROR)?
+        .ok_or("Turno no encontrado.")?;
+
+    let shift_info = ShiftReportInfo {
+        shift_id: info_raw.shift_id,
+        status: info_raw.status.unwrap_or_default(),
+        opening_balance: info_raw.opening_balance.unwrap_or(Decimal::ZERO),
+        opened_at: info_raw.opened_at.unwrap_or_default(),
+        closed_at: info_raw.closed_at,
+        duration_minutes: info_raw.duration_minutes,
+        opened_by: info_raw.opened_by.unwrap_or_default(),
+    };
+
+    // Query 2: resumen de ventas
+    let sales_query = Statement::from_sql_and_values(
+        DatabaseBackend::Postgres,
+        r#"
+        SELECT
+            COALESCE(SUM(s.total), 0) as gross_sales,
+            COUNT(s.id)::bigint as sales_count,
+            COALESCE((
+                SELECT SUM(sd.quantity)::bigint
+                FROM sale_details sd
+                INNER JOIN sales s2 ON sd.sale_id = s2.id
+                WHERE s2.shift_id = $1 AND s2.status = true
+            ), 0)::bigint as total_products_sold
+        FROM sales s
+        WHERE s.status = true AND s.shift_id = $1
+        "#,
+        [shift_id.into()],
+    );
+
+    let sales_raw = ShiftSalesRaw::find_by_statement(sales_query)
+        .one(db)
+        .await
+        .map_err(|_| DB_ERROR)?
+        .unwrap_or(ShiftSalesRaw {
+            gross_sales: Some(Decimal::ZERO),
+            sales_count: Some(0),
+            total_products_sold: Some(0),
+        });
+
+    let gross_sales = sales_raw.gross_sales.unwrap_or(Decimal::ZERO);
+    let sales_count = sales_raw.sales_count.unwrap_or(0);
+    let total_products_sold = sales_raw.total_products_sold.unwrap_or(0);
+
+    // Query 3: métodos de pago
+    let payment_query = Statement::from_sql_and_values(
+        DatabaseBackend::Postgres,
+        r#"
+        SELECT
+            pm.id as payment_method_id,
+            pm.name as payment_method_name,
+            SUM(sp.amount) as total_amount,
+            COUNT(sp.id)::bigint as transaction_count
+        FROM sale_payments sp
+        INNER JOIN payment_methods pm ON sp.payment_method_id = pm.id
+        INNER JOIN sales s ON sp.sale_id = s.id
+        WHERE s.status = true AND s.shift_id = $1
+        GROUP BY pm.id, pm.name
+        ORDER BY total_amount DESC
+        "#,
+        [shift_id.into()],
+    );
+
+    let payment_raw = ShiftPaymentRaw::find_by_statement(payment_query)
+        .all(db)
+        .await
+        .map_err(|_| DB_ERROR)?;
+
+    let total_payment_amount: Decimal = payment_raw
+        .iter()
+        .map(|r| r.total_amount.unwrap_or(Decimal::ZERO))
+        .sum();
+
+    let payment_methods: Vec<ShiftPaymentMethodItem> = payment_raw
+        .into_iter()
+        .map(|row| {
+            let amount = row.total_amount.unwrap_or(Decimal::ZERO);
+            let share_percentage = if total_payment_amount > Decimal::ZERO {
+                (amount / total_payment_amount) * Decimal::from(100)
+            } else {
+                Decimal::ZERO
+            };
+            ShiftPaymentMethodItem {
+                payment_method_id: row.payment_method_id,
+                payment_method_name: row.payment_method_name,
+                total_amount: amount,
+                transaction_count: row.transaction_count.unwrap_or(0),
+                share_percentage,
+            }
+        })
+        .collect();
+
+    // Query 4: top 10 productos
+    let products_query = Statement::from_sql_and_values(
+        DatabaseBackend::Postgres,
+        r#"
+        SELECT
+            p.id as product_id,
+            p.name as product_name,
+            c.name as category_name,
+            COALESCE(SUM(sd.quantity), 0)::bigint as quantity_sold,
+            COALESCE(SUM(sd.total), 0) as gross_revenue,
+            COALESCE((
+                SELECT SUM(rd.quantity * rd.unit_price)
+                FROM refund_details rd
+                INNER JOIN refunds r ON rd.refund_id = r.id
+                WHERE rd.product_id = p.id AND r.shift_id = $1
+            ), 0) as refunded_amount
+        FROM sale_details sd
+        INNER JOIN products p ON sd.product_id = p.id
+        LEFT JOIN categories c ON p.category_id = c.id
+        INNER JOIN sales s ON sd.sale_id = s.id
+        WHERE s.status = true AND s.shift_id = $1
+        GROUP BY p.id, p.name, c.name
+        ORDER BY quantity_sold DESC
+        LIMIT 10
+        "#,
+        [shift_id.into()],
+    );
+
+    let products_raw = ShiftTopProductRaw::find_by_statement(products_query)
+        .all(db)
+        .await
+        .map_err(|_| DB_ERROR)?;
+
+    let total_net_revenue: Decimal = products_raw
+        .iter()
+        .map(|r| {
+            r.gross_revenue.unwrap_or(Decimal::ZERO)
+                - r.refunded_amount.unwrap_or(Decimal::ZERO)
+        })
+        .sum();
+
+    let top_products: Vec<ShiftTopProduct> = products_raw
+        .into_iter()
+        .map(|row| {
+            let net_revenue = row.gross_revenue.unwrap_or(Decimal::ZERO)
+                - row.refunded_amount.unwrap_or(Decimal::ZERO);
+            let share_percentage = if total_net_revenue > Decimal::ZERO {
+                (net_revenue / total_net_revenue) * Decimal::from(100)
+            } else {
+                Decimal::ZERO
+            };
+            ShiftTopProduct {
+                product_id: row.product_id,
+                product_name: row.product_name,
+                category_name: row.category_name,
+                quantity_sold: row.quantity_sold.unwrap_or(0),
+                net_revenue,
+                share_percentage,
+            }
+        })
+        .collect();
+
+    // Query 5: resumen de reembolsos
+    let refunds_query = Statement::from_sql_and_values(
+        DatabaseBackend::Postgres,
+        r#"
+        SELECT
+            COALESCE(SUM(r.amount), 0) as total_refunded,
+            COUNT(r.id)::bigint as refunds_count
+        FROM refunds r
+        WHERE r.shift_id = $1
+        "#,
+        [shift_id.into()],
+    );
+
+    let refunds_raw = ShiftRefundsRaw::find_by_statement(refunds_query)
+        .one(db)
+        .await
+        .map_err(|_| DB_ERROR)?
+        .unwrap_or(ShiftRefundsRaw {
+            total_refunded: Some(Decimal::ZERO),
+            refunds_count: Some(0),
+        });
+
+    let total_refunded = refunds_raw.total_refunded.unwrap_or(Decimal::ZERO);
+    let refunds_count = refunds_raw.refunds_count.unwrap_or(0);
+    let refund_percentage = if gross_sales > Decimal::ZERO {
+        (total_refunded / gross_sales) * Decimal::from(100)
+    } else {
+        Decimal::ZERO
+    };
+
+    let net_sales = gross_sales - total_refunded;
+    let average_ticket = if sales_count > 0 {
+        net_sales / Decimal::from(sales_count)
+    } else {
+        Decimal::ZERO
+    };
+
+    Ok(ShiftReportResult {
+        shift_info,
+        sales_summary: ShiftSalesSummary {
+            gross_sales,
+            total_refunded,
+            net_sales,
+            sales_count,
+            average_ticket,
+            total_products_sold,
+        },
+        payment_methods,
+        top_products,
+        refunds_summary: ShiftRefundsSummary {
+            total_refunded,
+            refunds_count,
+            refund_percentage,
+        },
     })
 }
