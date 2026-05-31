@@ -1,12 +1,12 @@
 use chrono::{FixedOffset, NaiveDate, NaiveTime, TimeZone, Utc};
-use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, EntityTrait,
-    QueryFilter, QueryOrder,
-};
 use sea_orm::prelude::Decimal;
+use sea_orm::{
+    ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter,
+    QueryOrder,
+};
 
-use crate::entities::{prelude::Shifts, shifts};
 use super::structs::ShiftStatus;
+use crate::entities::{prelude::Shifts, shifts};
 
 pub async fn find_open_shift(db: &DatabaseConnection) -> Result<Option<shifts::Model>, String> {
     Shifts::find()
@@ -29,14 +29,9 @@ pub async fn find_active_shift(db: &DatabaseConnection) -> Result<Option<shifts:
         .map_err(|_| "Error al consultar turno activo".to_string())
 }
 
-pub async fn require_open_shift(db: &DatabaseConnection) -> Result<(), String> {
-    match find_open_shift(db).await? {
-        Some(_) => Ok(()),
-        None => Err("No hay un turno activo. Debe abrir un turno antes de realizar operaciones.".to_string()),
-    }
-}
-
-pub async fn find_pending_closure_shift(db: &DatabaseConnection) -> Result<Option<shifts::Model>, String> {
+pub async fn find_pending_closure_shift(
+    db: &DatabaseConnection,
+) -> Result<Option<shifts::Model>, String> {
     Shifts::find()
         .filter(shifts::Column::Status.eq(ShiftStatus::PendingClosure.as_str()))
         .one(db)
@@ -82,12 +77,10 @@ pub async fn find_shifts(
         let naive_date = NaiveDate::parse_from_str(&date_str, "%Y-%m-%d")
             .map_err(|_| "Formato de fecha inválido. Use YYYY-MM-DD".to_string())?;
         let offset = FixedOffset::east_opt(0).unwrap();
-        let start = offset.from_utc_datetime(
-            &naive_date.and_time(NaiveTime::from_hms_opt(0, 0, 0).unwrap()),
-        );
-        let end = offset.from_utc_datetime(
-            &naive_date.and_time(NaiveTime::from_hms_opt(23, 59, 59).unwrap()),
-        );
+        let start = offset
+            .from_utc_datetime(&naive_date.and_time(NaiveTime::from_hms_opt(0, 0, 0).unwrap()));
+        let end = offset
+            .from_utc_datetime(&naive_date.and_time(NaiveTime::from_hms_opt(23, 59, 59).unwrap()));
         select = select.filter(shifts::Column::OpenedAt.between(start, end));
     }
 

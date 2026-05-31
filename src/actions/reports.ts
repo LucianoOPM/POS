@@ -7,6 +7,7 @@ import {
   FolderTree,
   CreditCard,
   RotateCcw,
+  Clock,
 } from "lucide-preact";
 
 // ============================================================================
@@ -30,6 +31,7 @@ export interface DashboardResult {
   net_sales: string;
   sales_count: number;
   average_ticket: string;
+  total_products_sold: number;
   dominant_payment_method: string | null;
   dominant_payment_amount: string;
   top_product: string | null;
@@ -163,6 +165,93 @@ export interface RefundsReportResult {
 }
 
 // ============================================================================
+// 7. REPORTE DETALLADO DE VENTAS
+// ============================================================================
+
+export interface SalesReportParams {
+  date_from: string;
+  date_to: string;
+}
+
+export interface SalesReportSummary {
+  gross_sales: string;
+  sales_count: number;
+  average_ticket: string;
+}
+
+export interface SalesByDayItem {
+  date: string;
+  gross_sales: string;
+  sales_count: number;
+}
+
+export interface SalesByHourItem {
+  hour: number;
+  gross_sales: string;
+  sales_count: number;
+}
+
+export interface SalesReportResult {
+  summary: SalesReportSummary;
+  by_day: SalesByDayItem[];
+  by_hour: SalesByHourItem[];
+}
+
+// ============================================================================
+// 8. REPORTE POR TURNO
+// ============================================================================
+
+export interface ShiftReportInfo {
+  shift_id: number;
+  status: string;
+  opening_balance: string;
+  opened_at: string;
+  closed_at: string | null;
+  duration_minutes: number | null;
+  opened_by: string;
+}
+
+export interface ShiftSalesSummary {
+  gross_sales: string;
+  total_refunded: string;
+  net_sales: string;
+  sales_count: number;
+  average_ticket: string;
+  total_products_sold: number;
+}
+
+export interface ShiftPaymentMethodItem {
+  payment_method_id: number;
+  payment_method_name: string;
+  total_amount: string;
+  transaction_count: number;
+  share_percentage: string;
+}
+
+export interface ShiftTopProduct {
+  product_id: number;
+  product_name: string;
+  category_name: string | null;
+  quantity_sold: number;
+  net_revenue: string;
+  share_percentage: string;
+}
+
+export interface ShiftRefundsSummary {
+  total_refunded: string;
+  refunds_count: number;
+  refund_percentage: string;
+}
+
+export interface ShiftReportResult {
+  shift_info: ShiftReportInfo;
+  sales_summary: ShiftSalesSummary;
+  payment_methods: ShiftPaymentMethodItem[];
+  top_products: ShiftTopProduct[];
+  refunds_summary: ShiftRefundsSummary;
+}
+
+// ============================================================================
 // CATALOGO DE REPORTES DISPONIBLES
 // ============================================================================
 
@@ -217,6 +306,13 @@ export const availableReports: ReportDefinition[] = [
     icon: RotateCcw,
     color: "#ef4444",
   },
+  {
+    id: "shifts",
+    name: "Reporte de Turno",
+    description: "Análisis detallado de ventas, pagos y productos para un turno específico",
+    icon: Clock,
+    color: "#8b5cf6",
+  },
 ];
 
 // ============================================================================
@@ -264,6 +360,20 @@ export const reportsActions = {
    */
   getRefundsReport: async (params: RefundsReportParams): Promise<RefundsReportResult> => {
     return await invoke<RefundsReportResult>("get_refunds_report", { params });
+  },
+
+  /**
+   * Obtiene el reporte detallado de ventas (resumen, por día, por hora)
+   */
+  getSalesReport: async (params: SalesReportParams): Promise<SalesReportResult> => {
+    return await invoke<SalesReportResult>("get_sales_report", { params });
+  },
+
+  /**
+   * Obtiene el reporte de un turno específico
+   */
+  getShiftReport: async (shiftId: number): Promise<ShiftReportResult> => {
+    return await invoke<ShiftReportResult>("get_shift_report", { params: { shift_id: shiftId } });
   },
 
   /**

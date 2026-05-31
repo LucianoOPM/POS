@@ -31,7 +31,7 @@ use products::ProductHandlers::{
 };
 use reports::ReportsHandler::{
     get_category_report, get_dashboard_report, get_payment_method_report, get_product_report,
-    get_refunds_report, get_sales_over_time_report,
+    get_refunds_report, get_sales_over_time_report, get_sales_report, get_shift_report,
 };
 use sales::SalesHandler::{create_sale, get_payment_methods, get_sales};
 use sessions::SessionHandler::{get_session, login, logout};
@@ -98,10 +98,12 @@ pub async fn run() {
             // Reports
             get_dashboard_report,
             get_sales_over_time_report,
+            get_sales_report,
             get_product_report,
             get_category_report,
             get_payment_method_report,
             get_refunds_report,
+            get_shift_report,
             // Users
             get_users,
             toggle_user_status,

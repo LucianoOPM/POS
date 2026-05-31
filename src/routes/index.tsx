@@ -30,6 +30,7 @@ import ProductReport from "@/pages/reports/views/ProductReport";
 import CategoryReport from "@/pages/reports/views/CategoryReport";
 import PaymentMethodReport from "@/pages/reports/views/PaymentMethodReport";
 import RefundsReport from "@/pages/reports/views/RefundsReport";
+import ShiftReport from "@/pages/reports/views/ShiftReport";
 
 // Tipos
 interface RouteConfig {
@@ -165,6 +166,14 @@ export const routes: RouteConfig[] = [
     requireAuth: true,
     requiredAnyPermission: [PERMISSIONS.REPORTS_SALES, PERMISSIONS.REPORTS_FINANCIAL],
     title: "Reporte de Reembolsos",
+  },
+  {
+    path: "/reports/shifts",
+    component: ShiftReport,
+    layout: "main",
+    requireAuth: true,
+    requiredAnyPermission: [PERMISSIONS.REPORTS_SALES, PERMISSIONS.REPORTS_FINANCIAL],
+    title: "Reporte de Turno",
   },
   {
     path: "/settings",

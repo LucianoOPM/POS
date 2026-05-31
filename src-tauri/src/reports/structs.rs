@@ -23,6 +23,8 @@ pub enum TimeGrouping {
 pub struct DashboardParams {
     pub date_from: String,
     pub date_to: String,
+    pub shift_id: Option<i32>,
+    pub user_id: Option<String>,
 }
 
 /// Resultado del dashboard ejecutivo
@@ -38,6 +40,8 @@ pub struct DashboardResult {
     pub sales_count: i64,
     /// Ticket promedio (net_sales / sales_count)
     pub average_ticket: Decimal,
+    /// Cantidad total de unidades vendidas
+    pub total_products_sold: i64,
     /// Método de pago dominante
     pub dominant_payment_method: Option<String>,
     /// Monto del método de pago dominante
@@ -58,6 +62,8 @@ pub struct SalesOverTimeParams {
     pub date_from: String,
     pub date_to: String,
     pub grouping: TimeGrouping,
+    pub shift_id: Option<i32>,
+    pub user_id: Option<String>,
 }
 
 /// Item de ventas agrupado por período
@@ -94,6 +100,8 @@ pub struct ProductReportParams {
     pub date_to: String,
     pub product_id: Option<i32>,
     pub category_id: Option<i32>,
+    pub shift_id: Option<i32>,
+    pub user_id: Option<String>,
 }
 
 /// Item del reporte por producto
@@ -137,6 +145,8 @@ pub struct ProductReportResult {
 pub struct CategoryReportParams {
     pub date_from: String,
     pub date_to: String,
+    pub shift_id: Option<i32>,
+    pub user_id: Option<String>,
 }
 
 /// Item del reporte por categoría
@@ -170,6 +180,8 @@ pub struct CategoryReportResult {
 pub struct PaymentMethodReportParams {
     pub date_from: String,
     pub date_to: String,
+    pub shift_id: Option<i32>,
+    pub user_id: Option<String>,
 }
 
 /// Item del reporte por método de pago
@@ -203,6 +215,8 @@ pub struct PaymentMethodReportResult {
 pub struct RefundsReportParams {
     pub date_from: String,
     pub date_to: String,
+    pub shift_id: Option<i32>,
+    pub user_id: Option<String>,
 }
 
 /// Producto más reembolsado
@@ -227,4 +241,123 @@ pub struct RefundsReportResult {
     pub gross_sales: Decimal,
     /// Productos más reembolsados (top 10)
     pub top_refunded_products: Vec<TopRefundedProduct>,
+}
+
+// ============================================================================
+// 7. REPORTE DETALLADO DE VENTAS
+// ============================================================================
+
+/// Parámetros para el reporte detallado de ventas
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SalesReportParams {
+    pub date_from: String,
+    pub date_to: String,
+}
+
+/// Resumen agregado del período
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SalesReportSummary {
+    pub gross_sales: Decimal,
+    pub sales_count: i64,
+    pub average_ticket: Decimal,
+}
+
+/// Ventas brutas agrupadas por día
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SalesByDayItem {
+    pub date: String,
+    pub gross_sales: Decimal,
+    pub sales_count: i64,
+}
+
+/// Ventas brutas agrupadas por hora del día (0–23)
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SalesByHourItem {
+    pub hour: i32,
+    pub gross_sales: Decimal,
+    pub sales_count: i64,
+}
+
+/// Resultado del reporte detallado de ventas
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SalesReportResult {
+    pub summary: SalesReportSummary,
+    pub by_day: Vec<SalesByDayItem>,
+    pub by_hour: Vec<SalesByHourItem>,
+}
+
+// ============================================================================
+// 8. REPORTE POR TURNO
+// ============================================================================
+
+/// Parámetros para el reporte de turno
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ShiftReportParams {
+    pub shift_id: i32,
+}
+
+/// Metadata del turno
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ShiftReportInfo {
+    pub shift_id: i32,
+    pub status: String,
+    pub opening_balance: Decimal,
+    /// ISO timestamp (UTC)
+    pub opened_at: String,
+    pub closed_at: Option<String>,
+    /// Duración en minutos (solo si el turno está cerrado)
+    pub duration_minutes: Option<i64>,
+    /// Username del usuario que abrió el turno
+    pub opened_by: String,
+}
+
+/// Resumen de ventas del turno
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ShiftSalesSummary {
+    pub gross_sales: Decimal,
+    pub total_refunded: Decimal,
+    pub net_sales: Decimal,
+    pub sales_count: i64,
+    pub average_ticket: Decimal,
+    pub total_products_sold: i64,
+}
+
+/// Item de método de pago para el reporte de turno
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ShiftPaymentMethodItem {
+    pub payment_method_id: i32,
+    pub payment_method_name: String,
+    pub total_amount: Decimal,
+    pub transaction_count: i64,
+    pub share_percentage: Decimal,
+}
+
+/// Producto top del turno
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ShiftTopProduct {
+    pub product_id: i32,
+    pub product_name: String,
+    pub category_name: Option<String>,
+    pub quantity_sold: i64,
+    pub net_revenue: Decimal,
+    pub share_percentage: Decimal,
+}
+
+/// Resumen de reembolsos del turno
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ShiftRefundsSummary {
+    pub total_refunded: Decimal,
+    pub refunds_count: i64,
+    /// Porcentaje sobre ventas brutas
+    pub refund_percentage: Decimal,
+}
+
+/// Resultado completo del reporte de turno
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ShiftReportResult {
+    pub shift_info: ShiftReportInfo,
+    pub sales_summary: ShiftSalesSummary,
+    pub payment_methods: Vec<ShiftPaymentMethodItem>,
+    pub top_products: Vec<ShiftTopProduct>,
+    pub refunds_summary: ShiftRefundsSummary,
 }

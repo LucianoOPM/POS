@@ -4,13 +4,6 @@ use serde::{Deserialize, Serialize};
 use crate::entities::shifts;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct ShiftFilters {
-    pub status: Option<String>,
-    pub date: Option<String>,
-    pub user_id: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ShiftDetail {
     pub id: i32,
     pub user_id: String,
