@@ -389,4 +389,32 @@ export const reportsActions = {
   getReportById: (id: string): ReportDefinition | undefined => {
     return availableReports.find((r) => r.id === id);
   },
+
+  // ============================================================================
+  // EXPORTACIÓN XLSX
+  // ============================================================================
+
+  exportDashboard: (params: DashboardParams): Promise<string> =>
+    invoke("export_dashboard_report", { params }),
+
+  exportSalesOverTime: (params: SalesOverTimeParams): Promise<string> =>
+    invoke("export_sales_over_time_report", { params }),
+
+  exportSalesReport: (params: SalesReportParams): Promise<string> =>
+    invoke("export_sales_report", { params }),
+
+  exportProductReport: (params: ProductReportParams): Promise<string> =>
+    invoke("export_product_report", { params }),
+
+  exportCategoryReport: (params: CategoryReportParams): Promise<string> =>
+    invoke("export_category_report", { params }),
+
+  exportPaymentMethodReport: (params: PaymentMethodReportParams): Promise<string> =>
+    invoke("export_payment_method_report", { params }),
+
+  exportRefundsReport: (params: RefundsReportParams): Promise<string> =>
+    invoke("export_refunds_report", { params }),
+
+  exportShiftReport: (params: { shift_id: number }): Promise<string> =>
+    invoke("export_shift_report", { params }),
 };
