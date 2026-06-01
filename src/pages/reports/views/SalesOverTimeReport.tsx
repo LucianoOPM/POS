@@ -1,8 +1,10 @@
 import { useState } from "preact/hooks";
 import useSWR from "swr";
-import { TrendingUp, Calendar } from "lucide-preact";
+import { TrendingUp, Calendar, FileDown, Loader2 } from "lucide-preact";
 import { reportsActions, type SalesOverTimeResult, type SalesOverTimeParams, type TimeGrouping } from "@/actions/reports";
 import { useReportDateRange } from "@/hooks/useReportDateRange";
+import { useExportReport } from "@/hooks/useExportReport";
+import { Button } from "@/components/ui/button";
 import ReportPageLayout from "../components/ReportPageLayout";
 import DateRangeFilter from "../components/DateRangeFilter";
 
@@ -16,6 +18,10 @@ export default function SalesOverTimeReport() {
   const [grouping, setGrouping] = useState<TimeGrouping>("day");
 
   const params: SalesOverTimeParams = { date_from: dateFrom, date_to: dateTo, grouping };
+
+  const { exporting, handleExport } = useExportReport(() =>
+    reportsActions.exportSalesOverTime(params)
+  );
 
   const { data, isLoading, error, mutate } = useSWR<SalesOverTimeResult>(
     ["sales-over-time-report", params],
@@ -45,6 +51,18 @@ export default function SalesOverTimeReport() {
             onRefresh={() => mutate()}
             isRefreshing={isLoading}
           />
+          <div className="w-px h-6 bg-border" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            disabled={exporting || isLoading || !data}
+          >
+            {exporting
+              ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+              : <FileDown className="w-4 h-4 mr-1.5" />}
+            Exportar
+          </Button>
         </>
       }
     >

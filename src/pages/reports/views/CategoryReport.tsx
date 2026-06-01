@@ -1,7 +1,9 @@
 import useSWR from "swr";
-import { FolderTree } from "lucide-preact";
+import { FolderTree, FileDown, Loader2 } from "lucide-preact";
 import { reportsActions, type CategoryReportResult, type CategoryReportParams } from "@/actions/reports";
 import { useReportDateRange } from "@/hooks/useReportDateRange";
+import { useExportReport } from "@/hooks/useExportReport";
+import { Button } from "@/components/ui/button";
 import ReportPageLayout from "../components/ReportPageLayout";
 import DateRangeFilter from "../components/DateRangeFilter";
 
@@ -16,6 +18,10 @@ export default function CategoryReport() {
   const { dateFrom, dateTo, setDateFrom, setDateTo } = useReportDateRange("current-month");
   const params: CategoryReportParams = { date_from: dateFrom, date_to: dateTo };
 
+  const { exporting, handleExport } = useExportReport(() =>
+    reportsActions.exportCategoryReport(params)
+  );
+
   const { data, isLoading, error, mutate } = useSWR<CategoryReportResult>(
     ["category-report", params],
     () => reportsActions.getCategoryReport(params)
@@ -26,14 +32,28 @@ export default function CategoryReport() {
       title="Reporte por Categoria"
       description="Analisis de desempeño por linea de producto"
       filters={
-        <DateRangeFilter
-          dateFrom={dateFrom}
-          dateTo={dateTo}
-          onDateFromChange={setDateFrom}
-          onDateToChange={setDateTo}
-          onRefresh={() => mutate()}
-          isRefreshing={isLoading}
-        />
+        <>
+          <DateRangeFilter
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            onDateFromChange={setDateFrom}
+            onDateToChange={setDateTo}
+            onRefresh={() => mutate()}
+            isRefreshing={isLoading}
+          />
+          <div className="w-px h-6 bg-border" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            disabled={exporting || isLoading || !data}
+          >
+            {exporting
+              ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+              : <FileDown className="w-4 h-4 mr-1.5" />}
+            Exportar
+          </Button>
+        </>
       }
     >
       {error ? (

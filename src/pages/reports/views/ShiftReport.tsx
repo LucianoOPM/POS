@@ -15,10 +15,14 @@ import {
   Calendar,
   Timer,
   Wallet,
+  FileDown,
+  Loader2,
 } from "lucide-preact";
 import { reportsActions, type ShiftReportResult } from "@/actions/reports";
 import { shiftsActions } from "@/actions/shifts";
 import type { ShiftDetail } from "@/types/shift";
+import { useExportReport } from "@/hooks/useExportReport";
+import { Button } from "@/components/ui/button";
 import ReportPageLayout from "../components/ReportPageLayout";
 import KpiCard from "../components/KpiCard";
 
@@ -71,6 +75,10 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function ShiftReport() {
   const [selectedShiftId, setSelectedShiftId] = useState<number | null>(null);
+
+  const { exporting, handleExport } = useExportReport(() =>
+    reportsActions.exportShiftReport({ shift_id: selectedShiftId! })
+  );
 
   const { data: shifts, isLoading: shiftsLoading } = useSWR<ShiftDetail[]>(
     "shifts-list-for-report",
@@ -125,6 +133,18 @@ export default function ShiftReport() {
       >
         <RotateCcw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
       </button>
+      <div className="w-px h-6 bg-border" />
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleExport}
+        disabled={exporting || isLoading || !data || !selectedShiftId}
+      >
+        {exporting
+          ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+          : <FileDown className="w-4 h-4 mr-1.5" />}
+        Exportar
+      </Button>
     </div>
   );
 

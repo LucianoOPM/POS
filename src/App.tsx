@@ -1,15 +1,14 @@
 import AppRoutes from "@/routes";
+import { Toaster } from "@/components/ui/sonner";
 import "./App.css";
 
-/**
- * Componente principal de la aplicación
- * Maneja el sistema de rutas y layouts
- */
 function App() {
-  // Aquí puedes agregar tu componente Sidebar cuando lo crees
-  // const sidebar = <Sidebar />;
-
-  return <AppRoutes />;
+  return (
+    <>
+      <AppRoutes />
+      <Toaster richColors position="bottom-right" />
+    </>
+  );
 }
 
 export default App;

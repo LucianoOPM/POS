@@ -1,7 +1,9 @@
 import useSWR from "swr";
-import { Package } from "lucide-preact";
+import { Package, FileDown, Loader2 } from "lucide-preact";
 import { reportsActions, type ProductReportResult, type ProductReportParams } from "@/actions/reports";
 import { useReportDateRange } from "@/hooks/useReportDateRange";
+import { useExportReport } from "@/hooks/useExportReport";
+import { Button } from "@/components/ui/button";
 import ReportPageLayout from "../components/ReportPageLayout";
 import DateRangeFilter from "../components/DateRangeFilter";
 
@@ -16,6 +18,10 @@ export default function ProductReport() {
   const { dateFrom, dateTo, setDateFrom, setDateTo } = useReportDateRange("current-month");
   const params: ProductReportParams = { date_from: dateFrom, date_to: dateTo };
 
+  const { exporting, handleExport } = useExportReport(() =>
+    reportsActions.exportProductReport(params)
+  );
+
   const { data, isLoading, error, mutate } = useSWR<ProductReportResult>(
     ["product-report", params],
     () => reportsActions.getProductReport(params)
@@ -26,14 +32,28 @@ export default function ProductReport() {
       title="Reporte por Producto"
       description="Detalle de productos vendidos y reembolsados"
       filters={
-        <DateRangeFilter
-          dateFrom={dateFrom}
-          dateTo={dateTo}
-          onDateFromChange={setDateFrom}
-          onDateToChange={setDateTo}
-          onRefresh={() => mutate()}
-          isRefreshing={isLoading}
-        />
+        <>
+          <DateRangeFilter
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            onDateFromChange={setDateFrom}
+            onDateToChange={setDateTo}
+            onRefresh={() => mutate()}
+            isRefreshing={isLoading}
+          />
+          <div className="w-px h-6 bg-border" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            disabled={exporting || isLoading || !data}
+          >
+            {exporting
+              ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+              : <FileDown className="w-4 h-4 mr-1.5" />}
+            Exportar
+          </Button>
+        </>
       }
     >
       {error ? (

@@ -30,8 +30,11 @@ use products::ProductHandlers::{
     check_low_stock, create_product, delete_product, get_products, update_product,
 };
 use reports::ReportsHandler::{
-    get_category_report, get_dashboard_report, get_payment_method_report, get_product_report,
-    get_refunds_report, get_sales_over_time_report, get_sales_report, get_shift_report,
+    export_category_report, export_dashboard_report, export_payment_method_report,
+    export_product_report, export_refunds_report, export_sales_over_time_report,
+    export_sales_report, export_shift_report, get_category_report, get_dashboard_report,
+    get_payment_method_report, get_product_report, get_refunds_report, get_sales_over_time_report,
+    get_sales_report, get_shift_report,
 };
 use sales::SalesHandler::{create_sale, get_payment_methods, get_sales};
 use sessions::SessionHandler::{get_session, login, logout};
@@ -95,7 +98,7 @@ pub async fn run() {
             get_sales,
             create_sale,
             get_payment_methods,
-            // Reports
+            // Reports — visualización
             get_dashboard_report,
             get_sales_over_time_report,
             get_sales_report,
@@ -104,6 +107,15 @@ pub async fn run() {
             get_payment_method_report,
             get_refunds_report,
             get_shift_report,
+            // Reports — exportación XLSX
+            export_dashboard_report,
+            export_sales_over_time_report,
+            export_sales_report,
+            export_product_report,
+            export_category_report,
+            export_payment_method_report,
+            export_refunds_report,
+            export_shift_report,
             // Users
             get_users,
             toggle_user_status,
